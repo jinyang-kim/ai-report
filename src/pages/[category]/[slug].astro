@@ -43,6 +43,7 @@ const host = (url: string) => {
   description={entry.data.summary}
   type="article"
   publishedAt={date}
+  feed={{ href: `/rss/${categoryId}.xml`, title: `AI Report — ${category.name}` }}
 >
   <article class="wrap article" style={`--art-accent: var(--cat-${categoryId})`}>
     <header class="article__head">

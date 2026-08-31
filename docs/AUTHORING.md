@@ -97,23 +97,53 @@ sources:
 
 ## 발행 (예약 작업이 실행하는 부분)
 
+**git 프로토콜을 씁니다.** GitHub REST API(`api.github.com/repos/*`)는 실행 환경의 게이트웨이에서
+차단되는 경우가 있어 신뢰할 수 없습니다. `git clone`/`git push` 는 공개·비공개 저장소 모두에서
+정상 동작합니다.
+
+예약 작업 프롬프트에는 아래 스니펫이 그대로 들어갑니다 (외부 파일을 내려받지 않으므로
+저장소가 private 이어도 동일하게 동작합니다).
+
 ```bash
-export GH_TOKEN="github_pat_..."
-export GH_REPO="<사용자명>/ai-report"
+export GH_TOKEN="github_pat_..."          # 파인그레인드 PAT, Contents: Read and write
+export GH_REPO="jinyang-kim/ai-report"
 
-# 저장소에서 발행 스크립트를 받아옵니다 (public 저장소면 인증 불필요)
-curl -sSL "https://raw.githubusercontent.com/$GH_REPO/main/scripts/publish.py" -o publish.py
+CAT=it-ai                                  # kr-daily | it-ai | global-ui-ux
+DATE=$(TZ=Asia/Seoul date +%F)
+MD=./report.md                             # 방금 만든 마크다운
 
-# 커밋 → Vercel 자동 재배포
-python3 publish.py <카테고리> <YYYY-MM-DD> <로컬 md 파일>
+W=$(mktemp -d)
+git clone --depth 1 --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" "$W/r"
+mkdir -p "$W/r/src/content/$CAT"
+cp "$MD" "$W/r/src/content/$CAT/$DATE.md"
+cd "$W/r"
+git add -A
+git -c user.name="AI Report Bot" -c user.email="ai-report-bot@users.noreply.github.com" \
+    commit -qm "add: $CAT 브리핑 $DATE"
+git push -q origin HEAD \
+  || { git pull --rebase -q origin HEAD && git push -q origin HEAD; }
+echo "발행 완료"
 ```
 
-스크립트는 커밋 전에 프론트매터의 `title` / `date` / `summary` 존재 여부를 확인합니다.
-성공하면 커밋 URL 을 출력합니다.
+마지막 줄의 `||` 는 **다른 예약 작업이 먼저 push 한 경우**를 위한 재시도입니다.
+세 작업이 각각 다른 파일을 쓰므로 rebase 는 항상 깨끗하게 통과합니다.
 
-같은 아침에 세 작업이 동시에 실행돼도 서로 다른 경로를 쓰기 때문에 충돌하지 않습니다.
+로컬에서 수동으로 올릴 때는 저장소에 들어 있는 스크립트를 쓰는 편이 낫습니다 —
+프론트매터 검증까지 해줍니다.
 
----
+```bash
+export GH_TOKEN="github_pat_..."
+export GH_REPO="jinyang-kim/ai-report"
+python3 scripts/publish.py it-ai 2026-09-01 ./IT-AI-2026-09-01.md
+```
+
+`scripts/publish.py` 가 커밋 전에 확인하는 것:
+
+- 카테고리 이름이 유효한지
+- 날짜가 `YYYY-MM-DD` 형식인지
+- 프론트매터에 `title` / `date` / `summary` 가 있는지
+- **프론트매터의 `date` 와 파일명 날짜가 일치하는지**
+- 내용이 기존 파일과 같으면 빈 커밋을 만들지 않고 건너뜀
 
 ## 로컬 검증
 

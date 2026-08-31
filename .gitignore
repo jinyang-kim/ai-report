@@ -6,3 +6,4 @@ dist/
 *.log
 .env
 .env.production
+_to_delete/

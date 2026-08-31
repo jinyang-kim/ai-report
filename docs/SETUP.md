@@ -18,7 +18,7 @@ git add .
 git commit -m "AI Report 아카이브 사이트 초기 커밋"
 
 # GitHub 에서 빈 저장소를 먼저 만든 뒤 (README/gitignore 체크 해제)
-git remote add origin https://github.com/<사용자명>/ai-report.git
+git remote add origin https://github.com/jinyang-kim/ai-report.git
 git push -u origin main
 ```
 
@@ -67,7 +67,7 @@ RSS·사이트맵·canonical 링크에 실제 주소가 들어가야 합니다. 
 | --- | --- |
 | Token name | `ai-report-publisher` |
 | Expiration | 90일 (만료 후 재발급) |
-| Repository access | **Only select repositories** → `ai-report` 하나만 |
+| Repository access | **Only select repositories** → `jinyang-kim/ai-report` 하나만 |
 | Permissions → Repository permissions → **Contents** | **Read and write** |
 | 그 외 모든 권한 | No access (기본값 그대로) |
 
@@ -86,7 +86,7 @@ RSS·사이트맵·canonical 링크에 실제 주소가 들어가야 합니다. 
 
 ```bash
 export GH_TOKEN="github_pat_..."
-export GH_REPO="<사용자명>/ai-report"
+export GH_REPO="jinyang-kim/ai-report"
 ```
 
 ---
@@ -97,7 +97,7 @@ export GH_REPO="<사용자명>/ai-report"
 
 ```bash
 export GH_TOKEN="github_pat_..."
-export GH_REPO="<사용자명>/ai-report"
+export GH_REPO="jinyang-kim/ai-report"
 
 # 아무 마크다운이나 하나 만들어서
 python3 scripts/publish.py it-ai 2026-09-02 src/content/it-ai/2026-08-31.md
@@ -112,8 +112,9 @@ python3 scripts/publish.py it-ai 2026-09-02 src/content/it-ai/2026-08-31.md
 
 | 증상 | 원인 · 해결 |
 | --- | --- |
-| `커밋 실패 (404)` | 저장소 이름 오타이거나 토큰의 Repository access 에 이 저장소가 없음 |
-| `커밋 실패 (401/403)` | 토큰 만료, 또는 Contents 권한이 Read and write 가 아님 |
+| `clone 실패 ... not found` | 저장소 이름 오타이거나 토큰의 Repository access 에 이 저장소가 없음 |
+| `Authentication failed` / `Invalid username or token` | 토큰 만료, 또는 Contents 권한이 Read and write 가 아님 |
+| `push 를 3회 시도했으나 실패` | 원격에 예상 못한 변경이 있음. 로컬에서 `git pull --rebase` 후 수동 확인 |
 | Vercel 빌드 실패 | 대개 프론트매터 스키마 위반. 로컬에서 `npm run build` 로 재현하면 어느 파일인지 나옵니다 |
 | 사이트는 되는데 RSS 주소가 이상함 | `SITE_URL` 환경변수 미설정 |
 | 한글이 깨져 보임 | 마크다운 파일이 UTF-8 이 아님 (NFD 자모 분해). `python3 -c "import unicodedata,sys;..."` 로 NFC 정규화 |

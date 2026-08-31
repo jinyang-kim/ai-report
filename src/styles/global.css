@@ -197,7 +197,8 @@ a { color: inherit; }
 
 .nav { display: flex; align-items: center; gap: 2px; margin-inline-start: auto; }
 .nav a {
-  display: inline-block; padding: 7px 11px; border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; min-height: 32px;
+  padding: 6px 11px; border-radius: var(--radius-sm);
   font-size: 14px; font-weight: 600; color: var(--ink-2); text-decoration: none;
   transition: background .14s, color .14s; white-space: nowrap;
 }
@@ -223,6 +224,12 @@ a { color: inherit; }
 }
 
 /* 모바일: 브랜드+토글 한 줄, 메뉴는 그 아래 스크롤 가능한 줄로 */
+/* 태블릿 세로(~834px)부터는 짧은 라벨로 바꿔 헤더에 여백을 줍니다 */
+@media (max-width: 860px) {
+  .nav .nav__full { display: none; }
+}
+@media (min-width: 861px) { .nav .nav__short { display: none; } }
+
 @media (max-width: 720px) {
   .hdr__in { height: auto; flex-wrap: wrap; gap: 8px; padding-block: 9px; }
   .brand { order: 1; }
@@ -234,15 +241,14 @@ a { color: inherit; }
   }
   .nav::-webkit-scrollbar { display: none; }
   .nav a { padding: 6px 10px; font-size: 13.5px; }
-  .nav .nav__full { display: none; }
 }
-@media (min-width: 721px) { .nav .nav__short { display: none; } }
 
 /* ---------- chips / badges ---------- */
 
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 3px 9px; border-radius: 999px;
+  min-height: 22px;
   font-size: 12px; font-weight: 700; letter-spacing: -0.01em;
   white-space: nowrap; text-decoration: none;
 }
@@ -254,6 +260,7 @@ a { color: inherit; }
   background: var(--surface-3); color: var(--ink-2);
   font-weight: 600; border: 1px solid var(--line);
 }
+a.chip { min-height: 26px; padding-inline: 11px; }
 a.chip:hover { filter: brightness(0.96); }
 [data-theme='dark'] a.chip:hover { filter: brightness(1.15); }
 
@@ -272,8 +279,8 @@ a.chip:hover { filter: brightness(0.96); }
 }
 .hero p { font-size: clamp(15px, 2vw, 17px); color: var(--ink-2); max-width: 62ch; }
 .hero__meta {
-  display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
-  margin-top: 26px; font-size: 13.5px; color: var(--ink-3);
+  display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center;
+  min-height: 28px; margin-top: 26px; font-size: 13.5px; color: var(--ink-3);
 }
 @media (max-width: 560px) { .hero { padding: 36px 0 28px; } }
 
@@ -288,6 +295,7 @@ a.chip:hover { filter: brightness(0.96); }
 .section__head h2 { font-size: 21px; letter-spacing: -0.025em; }
 .section__head p { font-size: 14px; color: var(--ink-3); margin-top: 5px; }
 .section__more {
+  display: inline-flex; align-items: center; min-height: 28px;
   font-size: 14px; font-weight: 600; color: var(--accent-ink);
   text-decoration: none; white-space: nowrap;
 }
@@ -295,10 +303,14 @@ a.chip:hover { filter: brightness(0.96); }
 
 /* ---------- cards ---------- */
 
-.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+/* 데스크톱 3열 → 태블릿 2열 → 모바일 1열.
+   .grid(auto-fill) 와 .grid--3(고정 3열) 의 전환 지점을 일치시켜 두 목록이 같은 리듬을 갖게 합니다. */
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .grid--3 { grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 940px) { .grid--3 { grid-template-columns: 1fr; } }
-@media (max-width: 380px) { .grid { grid-template-columns: 1fr; } }
+@media (max-width: 940px) { .grid--3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) {
+  .grid, .grid--3 { grid-template-columns: 1fr; }
+}
 
 .card {
   position: relative; display: flex; flex-direction: column; gap: 12px;
@@ -471,10 +483,14 @@ a.chip:hover { filter: brightness(0.96); }
 
 .sources { max-width: var(--maxw-prose); margin-top: 48px; padding-top: 26px; border-top: 1px solid var(--line); }
 .sources h2 { font-size: 15px; letter-spacing: -0.02em; margin-bottom: 14px; }
-.sources ol { display: flex; flex-direction: column; gap: 9px; padding-inline-start: 1.3em; }
+.sources ol { display: flex; flex-direction: column; gap: 6px; padding-inline-start: 1.3em; }
 .sources li { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; }
 .sources li::marker { color: var(--ink-4); font-variant-numeric: tabular-nums; }
-.sources a { color: var(--accent-ink); text-decoration: none; }
+/* 출처는 문장 속 인라인 링크가 아니라 링크 목록이므로 WCAG 2.2 SC 2.5.8(24×24)을 충족시킵니다 */
+.sources a {
+  display: inline-block; min-height: 24px; padding-block: 3px;
+  color: var(--accent-ink); text-decoration: none;
+}
 .sources a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .sources .host { color: var(--ink-4); font-size: 13px; }
 
@@ -547,7 +563,8 @@ a.chip:hover { filter: brightness(0.96); }
   justify-content: space-between; padding: 30px 0;
   font-size: 13.5px; color: var(--ink-3);
 }
-.ftr__links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.ftr__links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.ftr__links a { display: inline-flex; align-items: center; min-height: 28px; }
 .ftr a { color: var(--ink-2); text-decoration: none; }
 .ftr a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .ftr strong { color: var(--ink-2); font-weight: 600; }

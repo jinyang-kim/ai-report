@@ -14,7 +14,11 @@ const reports = await getReportsByCategory(categoryId);
 const latest = reports[0];
 ---
 
-<BaseLayout title={category.name} description={category.description}>
+<BaseLayout
+  title={category.name}
+  description={category.description}
+  feed={{ href: `/rss/${categoryId}.xml`, title: `AI Report — ${category.name}` }}
+>
   <section class="hero">
     <div class="wrap">
       <p class="hero__eyebrow">
