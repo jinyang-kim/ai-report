@@ -22,7 +22,7 @@ for (const cat of CATEGORIES) {
     const date = m ? m[1] : f.replace(/\.md$/, '');
     const inject =
       `schemaVersion: "1.0"\n` +
-      `generatedBy: manual\n` +
+      `generatedBy: "manual"\n` +
       `generatedAt: "${date}T09:00:00+09:00"`;
     // 파일 시작의 여는 --- 에는 앞 개행이 없으므로, 첫 \n---\n 이 닫는 구분선.
     const next = txt.replace(/\n---\n/, `\n${inject}\n---\n`);

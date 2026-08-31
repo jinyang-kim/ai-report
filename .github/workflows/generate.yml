@@ -2,10 +2,10 @@ name: Generate Reports
 
 on:
   schedule:
-    # cron 은 UTC. 00:05/00:10/00:15 UTC = 09:05/09:10/09:15 KST (평일)
-    - cron: "5 0 * * 1-5"   # kr-daily
-    - cron: "10 0 * * 1-5"  # it-ai
-    - cron: "15 0 * * 1-5"  # global-ui-ux
+    # cron 은 UTC. 각 줄이 별도 일정 (평일):
+    - cron: "5 0 * * 1-5"   # 00:05 UTC = 09:05 KST (kr-daily)
+    - cron: "10 0 * * 1-5"  # 00:10 UTC = 09:10 KST (it-ai)
+    - cron: "15 0 * * 1-5"  # 00:15 UTC = 09:15 KST (global-ui-ux)
   workflow_dispatch:
     inputs:
       category:
