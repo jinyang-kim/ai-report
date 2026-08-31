@@ -1,0 +1,161 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { CATEGORY_LIST, CATEGORIES } from '~/lib/categories';
+import { getAllReports, groupByMonth, formatMonth, formatDate } from '~/lib/reports';
+
+const all = await getAllReports();
+const months = groupByMonth(all);
+
+/** 검색 대상 텍스트를 data 속성에 미리 담아둡니다 (외부 인덱스 파일 불필요). */
+const haystack = (r: (typeof all)[number]) =>
+  [
+    r.entry.data.title,
+    r.entry.data.summary,
+    r.entry.data.highlights.join(' '),
+    r.entry.data.tags.join(' '),
+    CATEGORIES[r.categoryId].name,
+    r.dateKey,
+  ]
+    .join(' ')
+    .toLowerCase();
+---
+
+<BaseLayout
+  title="아카이브"
+  description="지금까지 발행된 모든 브리핑을 날짜순으로 모아봅니다. 제목·요약·태그로 검색하고 카테고리로 걸러낼 수 있습니다."
+>
+  <section class="hero">
+    <div class="wrap">
+      <p class="hero__eyebrow">Archive</p>
+      <h1>전체 아카이브</h1>
+      <p>지금까지 발행된 브리핑 {all.length}개. 제목·요약·태그로 검색하거나 카테고리로 걸러보세요.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="search">
+        <label class="sr-only" for="q">리포트 검색</label>
+        <div class="search__field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+          </svg>
+          <input id="q" type="search" placeholder="검색어를 입력하세요 — 예: React, 코스피, 접근성" autocomplete="off" />
+        </div>
+        <p class="search__status" id="search-status" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="filters" role="group" aria-label="카테고리 필터">
+        <button type="button" data-cat="all" aria-pressed="true">전체</button>
+        {CATEGORY_LIST.map((c) => (
+          <button type="button" data-cat={c.id} aria-pressed="false">{c.name}</button>
+        ))}
+      </div>
+
+      {
+        all.length === 0 ? (
+          <div class="empty">
+            <h3>아직 리포트가 없습니다</h3>
+            <p>예약 작업이 처음 실행되면 이곳에 브리핑이 쌓이기 시작합니다.</p>
+          </div>
+        ) : (
+          <div id="archive">
+            {months.map((m) => (
+              <div class="day" data-month={m.monthKey}>
+                <div class="day__head">
+                  <span class="day__date">{formatMonth(m.monthKey)}</span>
+                  <span class="day__count" data-count>{m.items.length}개</span>
+                </div>
+                <div class="rows">
+                  {m.items.map((r) => (
+                    <a class="row" href={r.href} data-cat={r.categoryId} data-text={haystack(r)}>
+                      <span class="row__date">{formatDate(r.date).replace(/^\d+년 /, '')}</span>
+                      <span class={`chip chip--${r.categoryId}`}>{r.category.short}</span>
+                      <span class="row__title">{r.entry.data.title}</span>
+                      {r.entry.data.alert && <span class="chip chip--alert">🔔</span>}
+                      <svg class="row__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m9 18 6-6-6-6"></path>
+                      </svg>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div class="empty" id="no-results" hidden>
+              <h3>검색 결과가 없습니다</h3>
+              <p>다른 검색어를 시도하거나 카테고리 필터를 해제해 보세요.</p>
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      const root = document.getElementById('archive');
+      if (!root) return;
+
+      const input = /** @type {HTMLInputElement} */ (document.getElementById('q'));
+      const status = document.getElementById('search-status');
+      const noResults = document.getElementById('no-results');
+      const buttons = [...document.querySelectorAll('.filters button')];
+      const rows = [...root.querySelectorAll('.row')];
+      const months = [...root.querySelectorAll('[data-month]')];
+      const total = rows.length;
+
+      let cat = 'all';
+      let q = '';
+
+      function apply() {
+        const needle = q.trim().toLowerCase();
+        const terms = needle ? needle.split(/\s+/) : [];
+        let shown = 0;
+
+        for (const row of rows) {
+          const matchCat = cat === 'all' || row.dataset.cat === cat;
+          const text = row.dataset.text || '';
+          const matchText = terms.every((t) => text.includes(t));
+          const visible = matchCat && matchText;
+          row.hidden = !visible;
+          if (visible) shown++;
+        }
+
+        for (const m of months) {
+          const visibleRows = [...m.querySelectorAll('.row')].filter((r) => !r.hidden);
+          m.hidden = visibleRows.length === 0;
+          const counter = m.querySelector('[data-count]');
+          if (counter) counter.textContent = visibleRows.length + '개';
+        }
+
+        if (noResults) noResults.hidden = shown > 0;
+
+        if (status) {
+          status.textContent =
+            !needle && cat === 'all'
+              ? '전체 ' + total + '개'
+              : shown + '개 일치 (전체 ' + total + '개 중)';
+        }
+      }
+
+      let timer;
+      input?.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          q = input.value;
+          apply();
+        }, 120);
+      });
+
+      for (const btn of buttons) {
+        btn.addEventListener('click', () => {
+          cat = btn.dataset.cat || 'all';
+          for (const b of buttons) b.setAttribute('aria-pressed', String(b === btn));
+          apply();
+        });
+      }
+
+      apply();
+    })();
+  </script>
+</BaseLayout>

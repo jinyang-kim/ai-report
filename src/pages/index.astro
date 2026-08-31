@@ -1,0 +1,121 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ReportCard from '~/components/ReportCard.astro';
+import { CATEGORY_LIST } from '~/lib/categories';
+import { getAllReports, groupByDate, formatDate } from '~/lib/reports';
+
+const all = await getAllReports();
+const days = groupByDate(all);
+const [latest, ...previous] = days;
+const recent = previous.slice(0, 4);
+const hasMore = previous.length > recent.length;
+---
+
+<BaseLayout
+  title="AI Report"
+  description="한국 데일리 브리핑, IT·AI 심층 스크랩, 글로벌 UI·UX 브리핑. 평일 아침마다 자동으로 생성되어 쌓이는 리포트 아카이브입니다."
+>
+  <section class="hero">
+    <div class="wrap">
+      <p class="hero__eyebrow">Daily briefing archive</p>
+      <h1>매일 아침, 세 갈래의 브리핑</h1>
+      <p>
+        증시와 국내 뉴스, 개발·AI 업계 소식, 그리고 글로벌 UI·UX 동향을 평일 아침마다 자동으로
+        정리해 이곳에 쌓습니다. 모든 수치에는 출처와 측정 시점을 붙이고, 확인되지 않은 것은
+        확인되지 않았다고 적습니다.
+      </p>
+      <div class="hero__meta">
+        {latest && <span>최신 업데이트 · {formatDate(latest.date, { weekday: true })}</span>}
+        <span>총 {all.length}개 리포트</span>
+        <a class="section__more" href="/rss.xml">RSS 구독 →</a>
+      </div>
+    </div>
+  </section>
+
+  {
+    all.length === 0 ? (
+      <section class="section">
+        <div class="wrap">
+          <div class="empty">
+            <h3>아직 리포트가 없습니다</h3>
+            <p>
+              예약 작업이 처음 실행되면 이곳에 브리핑이 쌓이기 시작합니다. 평일 오전 9시(KST)에
+              세 개의 리포트가 자동으로 추가됩니다.
+            </p>
+          </div>
+        </div>
+      </section>
+    ) : (
+      <>
+        <section class="section">
+          <div class="wrap">
+            <div class="section__head">
+              <div>
+                <h2>가장 최근 브리핑</h2>
+                <p>{formatDate(latest!.date, { weekday: true })}</p>
+              </div>
+            </div>
+            <div class="grid grid--3">
+              {latest!.items.map((r) => (
+                <ReportCard report={r} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {recent.length > 0 && (
+          <section class="section">
+            <div class="wrap">
+              <div class="section__head">
+                <h2>지난 브리핑</h2>
+                {hasMore && (
+                  <a class="section__more" href="/archive/">
+                    전체 아카이브 →
+                  </a>
+                )}
+              </div>
+
+              {recent.map((day) => (
+                <div class="day">
+                  <div class="day__head">
+                    <span class="day__date">{formatDate(day.date, { weekday: true })}</span>
+                    <span class="day__count">{day.items.length}개</span>
+                  </div>
+                  <div class="grid grid--3">
+                    {day.items.map((r) => (
+                      <ReportCard report={r} maxHighlights={2} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </>
+    )
+  }
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <h2>브리핑 종류</h2>
+      </div>
+      <div class="grid grid--3">
+        {
+          CATEGORY_LIST.map((c) => (
+            <a class={`card card--${c.id}`} href={`/${c.id}/`}>
+              <div class="card__top">
+                <span class={`chip chip--${c.id}`}>{c.short}</span>
+                <span class="card__date">
+                  {all.filter((r) => r.categoryId === c.id).length}개
+                </span>
+              </div>
+              <h3>{c.name}</h3>
+              <p class="card__summary">{c.description}</p>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

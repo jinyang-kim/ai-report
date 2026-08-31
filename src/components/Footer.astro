@@ -1,0 +1,18 @@
+---
+import { CATEGORY_LIST } from '~/lib/categories';
+const year = new Date().getFullYear();
+---
+
+<footer class="ftr">
+  <div class="wrap ftr__in">
+    <div>
+      <p><strong>AI Report</strong> — 평일 아침 자동 생성되는 브리핑 아카이브</p>
+      <p style="margin-top:6px">© {year} jinyang. 각 리포트의 사실관계는 본문의 출처 링크를 확인하세요.</p>
+    </div>
+    <nav class="ftr__links" aria-label="푸터 메뉴">
+      {CATEGORY_LIST.map((c) => <a href={`/${c.id}/`}>{c.name}</a>)}
+      <a href="/archive/">아카이브</a>
+      <a href="/rss.xml">RSS</a>
+    </nav>
+  </div>
+</footer>

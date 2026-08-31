@@ -1,0 +1,38 @@
+---
+import type { Report } from '~/lib/reports';
+import { formatShortDate } from '~/lib/reports';
+
+interface Props {
+  report: Report;
+  /** 카테고리 배지를 숨길지 (카테고리 목록 페이지에서는 중복이라 숨김) */
+  hideCategory?: boolean;
+  maxHighlights?: number;
+}
+
+const { report, hideCategory = false, maxHighlights = 3 } = Astro.props;
+const { entry, category, categoryId, href, date } = report;
+const highlights = entry.data.highlights.slice(0, maxHighlights);
+---
+
+<a class={`card card--${categoryId}`} href={href}>
+  <div class="card__top">
+    {!hideCategory && <span class={`chip chip--${categoryId}`}>{category.name}</span>}
+    {entry.data.alert && <span class="chip chip--alert">🔔 조치 필요</span>}
+    <span class="card__date">{formatShortDate(date)}</span>
+  </div>
+
+  <h3>{entry.data.title}</h3>
+  <p class="card__summary">{entry.data.summary}</p>
+
+  {
+    highlights.length > 0 && (
+      <ul class="card__hl">
+        {highlights.map((h) => (
+          <li>
+            <span>{h}</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</a>

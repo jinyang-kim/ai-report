@@ -1,0 +1,135 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { CATEGORIES, CATEGORY_IDS, type CategoryId } from '~/lib/categories';
+import { getReportsByCategory, formatDate, neighbours, type Report } from '~/lib/reports';
+
+export const getStaticPaths = (async () => {
+  const groups = await Promise.all(
+    CATEGORY_IDS.map(async (id) => {
+      const reports = await getReportsByCategory(id);
+      return reports.map((report) => ({
+        params: { category: id, slug: report.slug },
+        props: { report, siblings: reports },
+      }));
+    })
+  );
+  return groups.flat();
+}) satisfies GetStaticPaths;
+
+interface Props {
+  report: Report;
+  siblings: Report[];
+}
+
+const { report, siblings } = Astro.props;
+const { entry, categoryId, slug, date } = report;
+const category = CATEGORIES[categoryId];
+const { Content } = await render(entry);
+const { newer, older } = neighbours(siblings, slug);
+
+const host = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+};
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  type="article"
+  publishedAt={date}
+>
+  <article class="wrap article" style={`--art-accent: var(--cat-${categoryId})`}>
+    <header class="article__head">
+      <div class="article__top">
+        <a class={`chip chip--${categoryId}`} href={`/${categoryId}/`}>{category.name}</a>
+        {entry.data.alert && <span class="chip chip--alert">🔔 조치 필요</span>}
+      </div>
+
+      <h1>{entry.data.title}</h1>
+      <p class="article__summary">{entry.data.summary}</p>
+
+      <div class="article__meta">
+        <time datetime={slug}>{formatDate(date, { weekday: true })}</time>
+        {
+          entry.data.tags.length > 0 && (
+            <span class="tags">
+              {entry.data.tags.map((t) => (
+                <span class="chip chip--plain">{t}</span>
+              ))}
+            </span>
+          )
+        }
+      </div>
+    </header>
+
+    {
+      entry.data.highlights.length > 0 && (
+        <aside class="takeaway">
+          <h2>오늘의 핵심</h2>
+          <ol>
+            {entry.data.highlights.map((h) => (
+              <li>{h}</li>
+            ))}
+          </ol>
+        </aside>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {
+      entry.data.sources.length > 0 && (
+        <section class="sources">
+          <h2>출처</h2>
+          <ol>
+            {entry.data.sources.map((s) => (
+              <li>
+                <a href={s.url} target="_blank" rel="noopener noreferrer">
+                  {s.title}
+                </a>{' '}
+                <span class="host">{host(s.url)}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      (newer || older) && (
+        <nav class="pager" aria-label="같은 카테고리의 다른 리포트">
+          {older && (
+            <a href={older.href}>
+              <small>← 이전 리포트</small>
+              <span>{formatDate(older.date)}</span>
+            </a>
+          )}
+          {newer && (
+            <a href={newer.href}>
+              <small>다음 리포트 →</small>
+              <span>{formatDate(newer.date)}</span>
+            </a>
+          )}
+        </nav>
+      )
+    }
+  </article>
+
+  <script is:inline>
+    // 넓은 표가 페이지 전체를 가로 스크롤시키지 않도록 각자 스크롤 컨테이너에 넣습니다.
+    document.querySelectorAll('.prose > table').forEach((t) => {
+      const box = document.createElement('div');
+      box.className = 'table-scroll';
+      t.replaceWith(box);
+      box.appendChild(t);
+    });
+  </script>
+</BaseLayout>

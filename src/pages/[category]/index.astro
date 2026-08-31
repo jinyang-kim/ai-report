@@ -1,0 +1,51 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ReportCard from '~/components/ReportCard.astro';
+import { CATEGORY_LIST, CATEGORIES, type CategoryId } from '~/lib/categories';
+import { getReportsByCategory, formatDate } from '~/lib/reports';
+
+export const getStaticPaths = (async () =>
+  CATEGORY_LIST.map((c) => ({ params: { category: c.id } }))) satisfies GetStaticPaths;
+
+const categoryId = Astro.params.category as CategoryId;
+const category = CATEGORIES[categoryId];
+const reports = await getReportsByCategory(categoryId);
+const latest = reports[0];
+---
+
+<BaseLayout title={category.name} description={category.description}>
+  <section class="hero">
+    <div class="wrap">
+      <p class="hero__eyebrow">
+        <span class={`chip chip--${categoryId}`}>{category.short}</span>
+      </p>
+      <h1>{category.name}</h1>
+      <p>{category.description}</p>
+      <div class="hero__meta">
+        <span>{reports.length}개 리포트</span>
+        {latest && <span>최신 · {formatDate(latest.date, { weekday: true })}</span>}
+        <a class="section__more" href={`/rss/${categoryId}.xml`}>RSS 구독 →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      {
+        reports.length === 0 ? (
+          <div class="empty">
+            <h3>아직 리포트가 없습니다</h3>
+            <p>예약 작업이 실행되면 이 카테고리에 브리핑이 쌓이기 시작합니다.</p>
+          </div>
+        ) : (
+          <div class="grid">
+            {reports.map((r) => (
+              <ReportCard report={r} hideCategory />
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
