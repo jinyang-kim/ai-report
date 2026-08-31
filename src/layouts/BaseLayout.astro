@@ -11,13 +11,21 @@ interface Props {
   publishedAt?: Date;
   /** 이 페이지에 해당하는 RSS 피드 (카테고리 페이지는 자기 피드를 우선 노출) */
   feed?: { href: string; title: string };
+  /** 소셜 미리보기 이미지 (public/og/ 기준 절대 경로). 없으면 기본 이미지 */
+  image?: string;
+  /** 이 페이지의 schema.org 구조화 데이터 */
+  jsonLd?: Record<string, unknown>[];
 }
 
-const { title, description, type = 'website', publishedAt, feed } = Astro.props;
+const {
+  title, description, type = 'website', publishedAt, feed,
+  image = '/og/default.png', jsonLd = [],
+} = Astro.props;
 
 const SITE_NAME = 'AI Report';
 const fullTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image, Astro.site);
 ---
 
 <!doctype html>
@@ -36,8 +44,19 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={fullTitle} />
     {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+
+    {
+      jsonLd.map((data) => (
+        <script type="application/ld+json" is:inline set:html={JSON.stringify(data)} />
+      ))
+    }
 
     {feed && <link rel="alternate" type="application/rss+xml" title={feed.title} href={feed.href} />}
     <link rel="alternate" type="application/rss+xml" title={`${SITE_NAME} — 전체 브리핑`} href="/rss.xml" />
@@ -46,8 +65,18 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232a78d6'/%3E%3Cpath d='M8 21V11m0 10h5.5M8 16h4.5M18 21l3.5-10L25 21m-5.6-3h4.2' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"
     />
 
-    <!-- Pretendard 자체 호스팅 (SIL OFL 1.1). 외부 CDN 의존 없음 — 사내망·오프라인에서도 동일하게 렌더됩니다.
-         dynamic-subset 이라 브라우저가 실제로 쓰이는 유니코드 범위만 내려받습니다. -->
+    <!-- Pretendard Variable 자체 호스팅 (SIL OFL 1.1). 외부 CDN 의존 없음 — 사내망·오프라인에서도
+         동일하게 렌더됩니다. dynamic-subset 이라 브라우저가 실제로 쓰이는 유니코드 범위만 내려받습니다.
+
+         preload 3개는 HTML → CSS → woff2 로 이어지는 요청 사슬을 끊기 위한 것입니다. 이 셋이
+         한국어 UI 텍스트의 약 84%(합계 79KB)를 담당한다는 것을 실제 빌드 산출물의 문자 분포로
+         확인했습니다. 본문 언어나 카테고리 이름을 크게 바꾸면 분포가 달라지므로 다시 재보세요. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/pretendard/woff2-dynamic-subset/PretendardVariable.subset.91.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/pretendard/woff2-dynamic-subset/PretendardVariable.subset.90.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/pretendard/woff2-dynamic-subset/PretendardVariable.subset.89.woff2" />
     <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
 
     <script is:inline>
@@ -72,15 +101,25 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       (() => {
         const btn = document.getElementById('theme-toggle');
         if (!btn) return;
-        btn.addEventListener('click', () => {
+        const mq = matchMedia('(prefers-color-scheme: dark)');
+        const isDark = () => {
           const root = document.documentElement;
-          const isDark =
-            root.dataset.theme === 'dark' ||
-            (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
-          const next = isDark ? 'light' : 'dark';
-          root.dataset.theme = next;
+          return root.dataset.theme === 'dark' || (!root.dataset.theme && mq.matches);
+        };
+        /* 마크업의 aria-label 은 서버 렌더 고정값이라 OS 다크·저장된 선택에서 실제 상태와
+           어긋납니다. 첫 렌더에 한 번 맞춰줍니다 (WCAG 4.1.2 Name, Role, Value). */
+        const sync = () =>
+          btn.setAttribute('aria-label', isDark() ? '라이트 모드로 전환' : '다크 모드로 전환');
+        sync();
+        btn.addEventListener('click', () => {
+          const next = isDark() ? 'light' : 'dark';
+          document.documentElement.dataset.theme = next;
           try { localStorage.setItem('ai-report-theme', next); } catch {}
-          btn.setAttribute('aria-label', next === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환');
+          sync();
+        });
+        /* 수동 선택 전이라면 OS 설정 변경도 라벨에 반영합니다. */
+        mq.addEventListener('change', () => {
+          if (!document.documentElement.dataset.theme) sync();
         });
       })();
     </script>

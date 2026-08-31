@@ -27,7 +27,7 @@ const reportSchema = z.object({
   draft: z.boolean().default(false),
 });
 
-export type ReportData = z.infer<typeof reportSchema>;
+export type ReportData = (typeof reportSchema)['_output'];
 
 const collection = (dir: string) =>
   defineCollection({

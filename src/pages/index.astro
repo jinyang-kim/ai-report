@@ -3,17 +3,30 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 import ReportCard from '~/components/ReportCard.astro';
 import { CATEGORY_LIST } from '~/lib/categories';
 import { getAllReports, groupByDate, formatDate } from '~/lib/reports';
+import { websiteSchema, collectionSchema } from '~/lib/schema';
 
 const all = await getAllReports();
 const days = groupByDate(all);
 const [latest, ...previous] = days;
 const recent = previous.slice(0, 4);
 const hasMore = previous.length > recent.length;
+
+const site = Astro.site!;
+const jsonLd = [
+  websiteSchema(site),
+  collectionSchema(site, {
+    name: 'AI Report — 최신 브리핑',
+    description: '평일 아침마다 자동으로 생성되는 세 갈래 브리핑의 최신 목록입니다.',
+    path: '/',
+    reports: all,
+  }),
+];
 ---
 
 <BaseLayout
   title="AI Report"
   description="한국 데일리 브리핑, IT·AI 심층 스크랩, 글로벌 UI·UX 브리핑. 평일 아침마다 자동으로 생성되어 쌓이는 리포트 아카이브입니다."
+  jsonLd={jsonLd}
 >
   <section class="hero">
     <div class="wrap">
@@ -37,7 +50,7 @@ const hasMore = previous.length > recent.length;
       <section class="section">
         <div class="wrap">
           <div class="empty">
-            <h3>아직 리포트가 없습니다</h3>
+            <h2>아직 리포트가 없습니다</h2>
             <p>
               예약 작업이 처음 실행되면 이곳에 브리핑이 쌓이기 시작합니다. 평일 오전 9시(KST)에
               세 개의 리포트가 자동으로 추가됩니다.

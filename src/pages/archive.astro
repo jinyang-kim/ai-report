@@ -2,6 +2,7 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { CATEGORY_LIST, CATEGORIES } from '~/lib/categories';
 import { getAllReports, groupByMonth, formatMonth, formatDate } from '~/lib/reports';
+import { collectionSchema, breadcrumbSchema } from '~/lib/schema';
 
 const all = await getAllReports();
 const months = groupByMonth(all);
@@ -18,11 +19,26 @@ const haystack = (r: (typeof all)[number]) =>
   ]
     .join(' ')
     .toLowerCase();
+
+const site = Astro.site!;
+const jsonLd = [
+  collectionSchema(site, {
+    name: 'AI Report 전체 아카이브',
+    description: '지금까지 발행된 모든 브리핑을 날짜순으로 모아봅니다.',
+    path: '/archive/',
+    reports: all,
+  }),
+  breadcrumbSchema(site, [
+    { name: '홈', path: '/' },
+    { name: '아카이브', path: '/archive/' },
+  ]),
+];
 ---
 
 <BaseLayout
   title="아카이브"
   description="지금까지 발행된 모든 브리핑을 날짜순으로 모아봅니다. 제목·요약·태그로 검색하고 카테고리로 걸러낼 수 있습니다."
+  jsonLd={jsonLd}
 >
   <section class="hero">
     <div class="wrap">
@@ -55,7 +71,7 @@ const haystack = (r: (typeof all)[number]) =>
       {
         all.length === 0 ? (
           <div class="empty">
-            <h3>아직 리포트가 없습니다</h3>
+            <h2>아직 리포트가 없습니다</h2>
             <p>예약 작업이 처음 실행되면 이곳에 브리핑이 쌓이기 시작합니다.</p>
           </div>
         ) : (
@@ -63,7 +79,7 @@ const haystack = (r: (typeof all)[number]) =>
             {months.map((m) => (
               <div class="day" data-month={m.monthKey}>
                 <div class="day__head">
-                  <span class="day__date">{formatMonth(m.monthKey)}</span>
+                  <h2 class="day__date">{formatMonth(m.monthKey)}</h2>
                   <span class="day__count" data-count>{m.items.length}개</span>
                 </div>
                 <div class="rows">
@@ -82,7 +98,7 @@ const haystack = (r: (typeof all)[number]) =>
               </div>
             ))}
             <div class="empty" id="no-results" hidden>
-              <h3>검색 결과가 없습니다</h3>
+              <h2>검색 결과가 없습니다</h2>
               <p>다른 검색어를 시도하거나 카테고리 필터를 해제해 보세요.</p>
             </div>
           </div>

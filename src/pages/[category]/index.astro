@@ -4,6 +4,7 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 import ReportCard from '~/components/ReportCard.astro';
 import { CATEGORY_LIST, CATEGORIES, type CategoryId } from '~/lib/categories';
 import { getReportsByCategory, formatDate } from '~/lib/reports';
+import { collectionSchema, breadcrumbSchema, ogImageFor } from '~/lib/schema';
 
 export const getStaticPaths = (async () =>
   CATEGORY_LIST.map((c) => ({ params: { category: c.id } }))) satisfies GetStaticPaths;
@@ -12,12 +13,28 @@ const categoryId = Astro.params.category as CategoryId;
 const category = CATEGORIES[categoryId];
 const reports = await getReportsByCategory(categoryId);
 const latest = reports[0];
+
+const site = Astro.site!;
+const jsonLd = [
+  collectionSchema(site, {
+    name: category.name,
+    description: category.description,
+    path: `/${categoryId}/`,
+    reports,
+  }),
+  breadcrumbSchema(site, [
+    { name: '홈', path: '/' },
+    { name: category.name, path: `/${categoryId}/` },
+  ]),
+];
 ---
 
 <BaseLayout
   title={category.name}
   description={category.description}
   feed={{ href: `/rss/${categoryId}.xml`, title: `AI Report — ${category.name}` }}
+  image={ogImageFor(category)}
+  jsonLd={jsonLd}
 >
   <section class="hero">
     <div class="wrap">
@@ -36,10 +53,11 @@ const latest = reports[0];
 
   <section class="section">
     <div class="wrap">
+      <h2 class="sr-only">{category.name} 리포트 목록</h2>
       {
         reports.length === 0 ? (
           <div class="empty">
-            <h3>아직 리포트가 없습니다</h3>
+            <h2>아직 리포트가 없습니다</h2>
             <p>예약 작업이 실행되면 이 카테고리에 브리핑이 쌓이기 시작합니다.</p>
           </div>
         ) : (
