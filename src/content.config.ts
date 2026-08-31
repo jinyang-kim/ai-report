@@ -25,6 +25,14 @@ const reportSchema = z.object({
     .default([]),
   /** true 면 빌드에서 제외 */
   draft: z.boolean().default(false),
+  /** 스키마 버전. 마이그레이션 추적용 */
+  schemaVersion: z.string().default('1.0'),
+  /** 생성 시각 (ISO 8601 KST). 예: "2026-08-31T09:00:00+09:00" */
+  generatedAt: z.string().optional(),
+  /** 생성 주체. "manual" | "claude-code" */
+  generatedBy: z.string().optional(),
+  /** 리서치에 사용한 원본 URL 목록 (sources 와 별개로 전체 추적용) */
+  sourceUrls: z.array(z.string().url()).default([]),
 });
 
 export type ReportData = (typeof reportSchema)['_output'];
