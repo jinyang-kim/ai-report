@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트
 
-Astro 7 정적 사이트. 평일 아침 예약 작업(클라우드)이 생성한 세 갈래 브리핑 마크다운을 GitHub `main` 에
+Astro 7 정적 사이트. 평일 아침 로컬 예약 작업이 생성한 세 갈래 브리핑 마크다운을 GitHub `main` 에
 커밋하면 Vercel 이 자동 재배포하는 아카이브입니다. 런타임 의존성은 3개
 (astro, @astrojs/rss, @astrojs/sitemap)뿐이고 프레임워크 런타임이 없습니다. 개발 의존성 2개
 (@astrojs/check, typescript)는 `npm run check` 전용이라 빌드 산출물에 들어가지 않습니다.
@@ -161,15 +161,39 @@ OG 이미지는 `public/og/{default,kr-daily,it-ai,global-ui-ux}.png` 4장이고
 ## 발행 흐름
 
 ```
-예약 작업 → 마크다운 생성 → scripts/publish.py → git push (main) → Vercel 자동 배포
+로컬 예약 작업 3개 → 리서치 → 마크다운 작성 → npm run build → git push (main) → Vercel 자동 배포
 ```
 
-`python3 scripts/publish.py <category> <YYYY-MM-DD> <파일>`, 환경변수 `GH_TOKEN` · `GH_REPO`.
+Claude Code **로컬 예약 작업**(`~/.claude/scheduled-tasks/ai-report-*`)이 평일 아침에 돕니다.
+클라우드가 아니라 **이 맥에서** 실행되므로 저장된 git 자격증명을 그대로 쓰고, `GH_TOKEN` 이
+필요 없습니다.
+
+| taskId | cron | 실제 실행 (jitter 포함) |
+| --- | --- | --- |
+| `ai-report-kr-daily` | `5 9 * * 1-5` | ~09:11 KST |
+| `ai-report-it-ai` | `10 9 * * 1-5` | ~09:20 KST |
+| `ai-report-global-ui-ux` | `15 9 * * 1-5` | ~09:23 KST |
+
+시스템이 부하 분산용 jitter(수 분)를 더하므로 cron 시각과 실제 실행 시각이 다릅니다.
+
+- **앱이 열려 있어야 돕니다.** 예정 시각에 앱이 닫혀 있으면 다음 실행 시 밀려서 돕니다.
+  아침에 맥이 꺼져 있으면 리포트가 그만큼 늦습니다.
+- 각 작업은 **자기 파일 1개씩만** 커밋합니다. push 가 거부되면 rebase 후 최대 3회 재시도 —
+  서로 다른 파일을 쓰므로 rebase 는 항상 깨끗하게 통과합니다.
+- 같은 날짜 파일이 이미 있으면 **아무것도 하지 않고 종료**합니다 (덮어쓰기 방지).
+- 검증 게이트는 `npm run build` 입니다. zod 스키마 전체를 보므로 아래 `publish.py` 의 정규식
+  검사보다 강합니다. 빌드가 통과하지 않으면 커밋하지 않습니다.
+
+작업 프롬프트를 고치려면 `~/.claude/scheduled-tasks/<taskId>/SKILL.md` 를 편집하세요.
+
+### scripts/publish.py — 수동 발행용
+
+파이프라인에서는 더 이상 쓰지 않지만, 다른 환경(클라우드 등)에서 발행하거나 손으로 올릴 때
+쓰는 도구로 남아 있습니다. `python3 scripts/publish.py <category> <YYYY-MM-DD> <파일>`,
+환경변수 `GH_TOKEN` · `GH_REPO` 필요.
 
 - **git 프로토콜을 씁니다** — GitHub REST API(`api.github.com/repos/*`)는 실행 환경 게이트웨이에서
   차단될 수 있어 신뢰할 수 없습니다. 이 결정을 되돌리지 마세요.
-- 세 작업이 아침 중 각각 다른 시각에 **자기 파일 1개씩만** 커밋합니다. push 가 거부되면 rebase 후
-  최대 3회 재시도 — 서로 다른 파일을 쓰므로 rebase 는 항상 깨끗하게 통과합니다.
 - 커밋 전 검증: 카테고리 유효성, 날짜 형식, 필수 프론트매터(`title`/`date`/`summary`),
   **프론트매터 date 와 파일명 일치**, 내용이 같으면 빈 커밋 생략.
 
@@ -192,7 +216,7 @@ OG 이미지는 `public/og/{default,kr-daily,it-ai,global-ui-ux}.png` 4장이고
   `ai-report-git-main-*.vercel.app`(브랜치 별칭)은 Vercel Deployment Protection 이 걸려 있어
   로그인 없이는 열리지 않습니다. 공개 주소로 쓰지 마세요.
 - RSS 는 피드당 최근 60건까지 (`src/lib/feed.ts` 의 `FEED_LIMIT`). 전체 이력은 `/archive/` 에서 봅니다.
-- `src/content/*/2026-08-31.md` 3개는 형식 안내용 샘플입니다. 첫 실제 리포트가 들어오면 삭제 대상.
+- 샘플 파일은 2026-08-31 자 실제 리포트로 대체됐습니다. 콘텐츠 디렉터리에 자리표시자가 없습니다.
 - `vercel.json` 은 캐시 헤더만 정의합니다 — `/fonts/*` 1년 immutable, `/og/*` 1주.
   해시가 붙지 않는 경로라 명시가 필요합니다.
 - `BaseLayout.astro` 의 폰트 `preload` 3개(서브셋 89·90·91)는 실제 빌드 산출물의 문자 분포를 재서
