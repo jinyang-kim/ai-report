@@ -1,0 +1,135 @@
+name: Generate Reports
+
+on:
+  schedule:
+    # cron 은 UTC. 00:05/00:10/00:15 UTC = 09:05/09:10/09:15 KST (평일)
+    - cron: "5 0 * * 1-5"   # kr-daily
+    - cron: "10 0 * * 1-5"  # it-ai
+    - cron: "15 0 * * 1-5"  # global-ui-ux
+  workflow_dispatch:
+    inputs:
+      category:
+        description: "kr-daily | it-ai | global-ui-ux"
+        required: true
+      date:
+        description: "YYYY-MM-DD (비우면 오늘 KST)"
+        required: false
+
+# push 경합 방지: 그룹 내 1개만 실행, 나머지는 큐잉
+concurrency:
+  group: generate-main
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve category and date
+        id: ctx
+        run: |
+          case "${{ github.event.schedule }}" in
+            "5 0 * * 1-5")  CATEGORY=kr-daily ;;
+            "10 0 * * 1-5") CATEGORY=it-ai ;;
+            "15 0 * * 1-5") CATEGORY=global-ui-ux ;;
+            *)              CATEGORY="${{ github.event.inputs.category }}" ;;
+          esac
+          case "$CATEGORY" in
+            kr-daily|it-ai|global-ui-ux) ;;
+            *) echo "잘못된 category: '$CATEGORY'"; exit 1 ;;
+          esac
+          DATE="${{ github.event.inputs.date }}"
+          [ -z "$DATE" ] && DATE="$(TZ=Asia/Seoul date +%F)"
+          echo "category=$CATEGORY" >> "$GITHUB_OUTPUT"
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          echo "file=src/content/$CATEGORY/$DATE.md" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if report already exists
+        id: exists
+        run: |
+          if [ -f "${{ steps.ctx.outputs.file }}" ]; then
+            echo "이미 존재 → skip: ${{ steps.ctx.outputs.file }}"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate report with Claude Code
+        if: steps.exists.outputs.skip == 'false'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            오늘(KST ${{ steps.ctx.outputs.date }})의 "${{ steps.ctx.outputs.category }}" 리포트를 생성한다.
+            1. .github/prompts/${{ steps.ctx.outputs.category }}.md 를 Read 하고 그 지침을 따른다.
+            2. src/content.config.ts 를 Read 해 프론트매터 스키마를 확인한다.
+            3. WebSearch/WebFetch 로 조사한다.
+            4. 완성된 마크다운을 정확히 이 경로에 Write 한다: ${{ steps.ctx.outputs.file }}
+               - 프론트매터 date 는 ${{ steps.ctx.outputs.date }} 이고 파일명과 일치해야 한다.
+               - generatedBy: claude-code, generatedAt: "${{ steps.ctx.outputs.date }}T09:00:00+09:00"
+            git 명령은 실행하지 않는다. 파일 생성만 한다.
+          claude_args: |
+            --max-turns 40
+            --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch"
+
+      - name: Verify file was created
+        if: steps.exists.outputs.skip == 'false'
+        run: test -f "${{ steps.ctx.outputs.file }}" || { echo "Claude 가 파일을 만들지 않음"; exit 1; }
+
+      - name: Setup Node
+        if: steps.exists.outputs.skip == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Validate with build gate
+        if: steps.exists.outputs.skip == 'false'
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit and push
+        if: steps.exists.outputs.skip == 'false'
+        run: |
+          git config user.name "ai-report-bot"
+          git config user.email "sunlover011@gmail.com"
+          git add "${{ steps.ctx.outputs.file }}"
+          git commit -m "[${{ steps.ctx.outputs.category }}] ${{ steps.ctx.outputs.date }} 자동 생성"
+          for i in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            echo "push 실패, rebase 후 재시도 ($i/3)"
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "3회 재시도 후 push 실패"; exit 1
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const cat = '${{ steps.ctx.outputs.category }}' || '(unknown)';
+            const date = '${{ steps.ctx.outputs.date }}' || '(unknown)';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const title = `[생성 실패] ${cat} ${date}`;
+            // 같은 제목의 열린 이슈가 있으면 중복 생성하지 않음
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'cron-failure',
+            });
+            if (existing.data.some((i) => i.title === title)) return;
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title,
+              body: `카테고리: ${cat}\n날짜(KST): ${date}\n로그: ${runUrl}`,
+              labels: ['cron-failure'],
+            });
