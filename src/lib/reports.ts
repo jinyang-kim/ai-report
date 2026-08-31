@@ -23,6 +23,16 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export const toDateKey = (d: Date) =>
   `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 
+/**
+ * KST 자정 기준 ISO 8601 문자열 (`2026-08-31T00:00:00+09:00`).
+ *
+ * 날짜만 있는 `2026-08-31` 도 유효한 ISO 8601 이지만, Google Rich Results Test 가
+ * "datetime 값이 잘못됨 / 시간대가 누락됨" 으로 지적합니다. 프론트매터의 date 는 KST
+ * 달력 날짜이므로 `+09:00` 을 붙여야 어느 타임존에서 읽어도 날짜가 밀리지 않습니다.
+ * (`toISOString()` 은 UTC 자정을 내보내 9시간 어긋나므로 쓰지 마세요.)
+ */
+export const toIsoKst = (d: Date) => `${toDateKey(d)}T00:00:00+09:00`;
+
 export function formatDate(d: Date, opts: { weekday?: boolean } = {}) {
   const y = d.getUTCFullYear();
   const m = d.getUTCMonth() + 1;

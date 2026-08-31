@@ -8,7 +8,8 @@ interface Props {
   description: string;
   /** OG 타입 */
   type?: 'website' | 'article';
-  publishedAt?: Date;
+  /** `article:published_time` 값. `toIsoKst()` 로 만든 KST ISO 8601 문자열 */
+  publishedAt?: string;
   /** 이 페이지에 해당하는 RSS 피드 (카테고리 페이지는 자기 피드를 우선 노출) */
   feed?: { href: string; title: string };
   /** 소셜 미리보기 이미지 (public/og/ 기준 절대 경로). 없으면 기본 이미지 */
@@ -48,7 +49,7 @@ const ogImage = new URL(image, Astro.site);
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={fullTitle} />
-    {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
+    {publishedAt && <meta property="article:published_time" content={publishedAt} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
 

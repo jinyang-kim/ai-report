@@ -1,12 +1,12 @@
-import type { Report } from './reports';
+import { toIsoKst, type Report } from './reports';
 import type { Category } from './categories';
 
 /**
  * schema.org 구조화 데이터 생성기.
  * 프론트매터에 이미 있는 값만 씁니다 — 리포트 작성 시 추가로 채울 항목이 없습니다.
  *
- * 날짜는 `Report.dateKey`(YYYY-MM-DD)를 그대로 넘깁니다. 이 값은 reports.ts 에서
- * UTC 게터로 만들어진 KST 달력 날짜라, 여기서 Date 를 다시 포맷하면 하루가 밀립니다.
+ * 날짜는 `toIsoKst()` 로 만듭니다 — KST 자정에 `+09:00` 오프셋을 붙인 ISO 8601 입니다.
+ * 여기서 `Date` 를 직접 포맷하거나 `toISOString()` 을 쓰면 하루가 밀립니다.
  */
 
 const SITE_NAME = 'AI Report';
@@ -33,7 +33,8 @@ export function websiteSchema(site: URL) {
 }
 
 export function blogPostingSchema(report: Report, site: URL, image: string) {
-  const { entry, category, href, dateKey } = report;
+  const { entry, category, href, date } = report;
+  const published = toIsoKst(date);
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -41,8 +42,8 @@ export function blogPostingSchema(report: Report, site: URL, image: string) {
     description: entry.data.summary,
     url: abs(site, href),
     mainEntityOfPage: { '@type': 'WebPage', '@id': abs(site, href) },
-    datePublished: dateKey,
-    dateModified: dateKey,
+    datePublished: published,
+    dateModified: published,
     inLanguage: 'ko-KR',
     articleSection: category.name,
     image: abs(site, image),

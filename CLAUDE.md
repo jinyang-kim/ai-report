@@ -69,8 +69,8 @@ src/content/<category>/YYYY-MM-DD.md
 ### 날짜 — UTC 게터를 쓰는 이유
 
 프론트매터의 `date: 2026-09-01` 은 **KST 달력 날짜**지만 `z.coerce.date()` 가 UTC 자정 Date 로 만듭니다.
-그래서 `src/lib/reports.ts` 의 `toDateKey` / `formatDate` / `formatShortDate` 는 전부 `getUTCFullYear()`
-계열을 씁니다. 여기에 `getFullYear()` 나 `toLocaleDateString()` 을 쓰면 실행 환경 타임존에 따라 하루가
+그래서 `src/lib/reports.ts` 의 `toDateKey` / `formatDate` / `formatShortDate` / `toIsoKst` 는 전부
+`getUTCFullYear()` 계열을 씁니다. 여기에 `getFullYear()` 나 `toLocaleDateString()` 을 쓰면 실행 환경 타임존에 따라 하루가
 밀립니다. 날짜 포맷 함수를 새로 만들 때도 UTC 게터를 유지하세요.
 
 ### 테마 토큰 — 3중 정의
@@ -148,8 +148,11 @@ CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
 | 카테고리 목록 · 아카이브 | `CollectionPage` + `BreadcrumbList` |
 | 리포트 상세 | `BlogPosting` + `BreadcrumbList` |
 
-`blogPostingSchema` 는 날짜에 `Report.dateKey`(YYYY-MM-DD)를 그대로 씁니다. 여기서 `Date` 를 다시
-포맷하면 위의 UTC 규약이 깨져 하루가 밀립니다.
+날짜는 `toIsoKst()`(reports.ts) 한 곳에서만 만듭니다 — `2026-08-31T00:00:00+09:00`.
+JSON-LD 의 `datePublished`/`dateModified` 와 `<meta property="article:published_time">` 이
+같은 값을 써야 하므로 헬퍼를 공유합니다. 날짜만 있는 `2026-08-31` 은 Google Rich Results Test 가
+"datetime 값이 잘못됨 / 시간대 누락" 으로 지적하고, `toISOString()` 은 UTC 자정을 내보내
+KST 달력 날짜와 9시간 어긋납니다. 둘 다 쓰지 마세요.
 
 OG 이미지는 `public/og/{default,kr-daily,it-ai,global-ui-ux}.png` 4장이고 **저장소에 커밋된 정적
 파일**입니다. 빌드 때 만들지 않습니다. `scripts/make-og.py` 가 헤드리스 Chrome + `sips`(macOS 기본

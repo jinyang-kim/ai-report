@@ -3,7 +3,7 @@ import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { CATEGORIES, CATEGORY_IDS } from '~/lib/categories';
-import { getReportsByCategory, formatDate, neighbours, type Report } from '~/lib/reports';
+import { getReportsByCategory, formatDate, neighbours, toIsoKst, type Report } from '~/lib/reports';
 import { blogPostingSchema, breadcrumbSchema, ogImageFor } from '~/lib/schema';
 
 export const getStaticPaths = (async () => {
@@ -54,7 +54,7 @@ const host = (url: string) => {
   title={entry.data.title}
   description={entry.data.summary}
   type="article"
-  publishedAt={date}
+  publishedAt={toIsoKst(date)}
   feed={{ href: `/rss/${categoryId}.xml`, title: `AI Report — ${category.name}` }}
   image={ogImage}
   jsonLd={jsonLd}
