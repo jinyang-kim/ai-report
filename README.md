@@ -183,7 +183,7 @@ IT·AI 브리핑을 11시 45분까지 기다릴 필요가 없습니다. 대신 �
   `BaseLayout.astro` 의 **stylesheet 링크와 preload 3줄을 함께** 지우세요 (preload 만 남으면
   쓰이지 않는 파일을 계속 내려받습니다). 시스템 한글 폰트로 폴백합니다.
 - **사이트 주소** — `astro.config.mjs` 가 환경변수 `SITE_URL` 을 읽고, 없으면 기본값
-  `https://ai-report-jinyang.vercel.app` 을 씁니다. `public/robots.txt` 의 Sitemap 주소는
+  `https://ai-report-navy.vercel.app` 을 씁니다. `public/robots.txt` 의 Sitemap 주소는
   하드코딩이므로 도메인을 바꿀 때 **두 곳을 같이** 고쳐야 합니다.
 - **소셜 미리보기** — 모든 페이지에 `og:image` 가 붙습니다. 카테고리별로 다른 이미지를 쓰고,
   카테고리·브랜드 색을 바꿨다면 `python3 scripts/make-og.py` 로 다시 뽑으세요

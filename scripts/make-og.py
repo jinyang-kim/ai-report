@@ -66,7 +66,7 @@ TPL = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
     <div class="mark"></div><div class="brand">AI Report</div>{chip}
   </div>
   <div><h1>{title}</h1><div class="desc">{desc}</div></div>
-  <div class="foot"><span class="dot"></span>ai-report-jinyang.vercel.app</div>
+  <div class="foot"><span class="dot"></span>ai-report-navy.vercel.app</div>
 </body></html>"""
 
 

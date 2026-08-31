@@ -175,8 +175,19 @@ OG 이미지는 `public/og/{default,kr-daily,it-ai,global-ui-ux}.png` 4장이고
 ## 알아둘 점
 
 - 경로 별칭 `~/*` → `src/*` (tsconfig.json, `astro/tsconfigs/strict` 확장).
-- 사이트 주소는 `SITE_URL` 환경변수 → 없으면 `astro.config.mjs` 기본값. `public/robots.txt` 의 Sitemap
-  주소는 하드코딩이라 도메인이 바뀌면 **두 곳을 같이** 고쳐야 합니다 (현재는 서로 맞아 있습니다).
+- 사이트 주소는 `SITE_URL` 환경변수 → 없으면 `astro.config.mjs` 기본값
+  (현재 `https://ai-report-navy.vercel.app` — Vercel 의 공개 프로덕션 별칭입니다).
+  이 값 하나가 canonical · og:image · JSON-LD · sitemap · RSS 의 절대 URL 을 전부 만듭니다.
+  도메인이 바뀌면 하드코딩된 **세 곳을 같이** 고쳐야 합니다.
+
+  | 위치 | 내용 |
+  | --- | --- |
+  | `astro.config.mjs` | `SITE` 기본값 |
+  | `public/robots.txt` | `Sitemap:` 주소 |
+  | `scripts/make-og.py` | OG 이미지 하단 문구 → 고친 뒤 스크립트를 다시 실행 |
+
+  `ai-report-git-main-*.vercel.app`(브랜치 별칭)은 Vercel Deployment Protection 이 걸려 있어
+  로그인 없이는 열리지 않습니다. 공개 주소로 쓰지 마세요.
 - RSS 는 피드당 최근 60건까지 (`src/lib/feed.ts` 의 `FEED_LIMIT`). 전체 이력은 `/archive/` 에서 봅니다.
 - `src/content/*/2026-08-31.md` 3개는 형식 안내용 샘플입니다. 첫 실제 리포트가 들어오면 삭제 대상.
 - `vercel.json` 은 캐시 헤더만 정의합니다 — `/fonts/*` 1년 immutable, `/og/*` 1주.

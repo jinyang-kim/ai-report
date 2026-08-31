@@ -2,8 +2,10 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// Vercel 배포 후 실제 도메인으로 바꾸거나, Vercel 환경변수 SITE_URL 로 주입하세요.
-const SITE = process.env.SITE_URL ?? 'https://ai-report-jinyang.vercel.app';
+// 프로덕션 도메인. canonical·og:image·JSON-LD·sitemap·RSS 의 절대 URL 이 전부 이 값에서 나옵니다.
+// 도메인이 바뀌면 public/robots.txt 의 Sitemap 주소와 scripts/make-og.py 의 푸터 문구도 같이 고치세요
+// (또는 Vercel 환경변수 SITE_URL 로 덮어쓰기 — 이 경우 robots.txt 는 여전히 수동입니다).
+const SITE = process.env.SITE_URL ?? 'https://ai-report-navy.vercel.app';
 
 export default defineConfig({
   site: SITE,
