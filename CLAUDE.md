@@ -5,8 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 프로젝트
 
 Astro 7 정적 사이트. 평일 아침 예약 작업(클라우드)이 생성한 세 갈래 브리핑 마크다운을 GitHub `main` 에
-커밋하면 Vercel 이 자동 재배포하는 아카이브입니다. 의존성 3개(astro, @astrojs/rss, @astrojs/sitemap),
-프레임워크 런타임 없음. UI 문구와 콘텐츠는 전부 한국어입니다.
+커밋하면 Vercel 이 자동 재배포하는 아카이브입니다. 런타임 의존성은 3개
+(astro, @astrojs/rss, @astrojs/sitemap)뿐이고 프레임워크 런타임이 없습니다. 개발 의존성 2개
+(@astrojs/check, typescript)는 `npm run check` 전용이라 빌드 산출물에 들어가지 않습니다.
+UI 문구와 콘텐츠는 전부 한국어입니다.
 
 ## 명령
 
@@ -52,7 +54,7 @@ src/content/<category>/YYYY-MM-DD.md
 
 ### 카테고리 추가·변경 시 손대야 하는 곳
 
-카테고리 ID 3개(`kr-daily`, `it-ai`, `global-ui-ux`)가 5개 파일에 하드코딩되어 있습니다.
+카테고리 ID 3개(`kr-daily`, `it-ai`, `global-ui-ux`)가 6개 파일에 하드코딩되어 있습니다.
 하나라도 빠지면 빌드 실패 또는 조용한 스타일 누락으로 이어집니다.
 
 | 파일 | 내용 |
@@ -100,15 +102,38 @@ src/content/<category>/YYYY-MM-DD.md
 본문 회색 `--ink-3` 도 4.5:1 을 맞춘 값입니다(라이트 `#6f6f69`, 다크 `#91918a`). 더 흐리게 바꾸면
 13px 안팎의 메타 텍스트가 AA 아래로 떨어집니다.
 
+### 제목 계층 — 건너뛰지 마세요
+
+스크린리더 탐색과 SEO 가 함께 걸린 부분이라 페이지마다 `h1 → h2 → h3` 를 유지합니다.
+카드 제목이 `h3`(`ReportCard.astro`) 로 고정이므로, 그 사이에 `h2` 가 반드시 있어야 합니다.
+
+| 페이지 | `h2` 를 담당하는 것 |
+| --- | --- |
+| 홈 | `.section__head` 의 눈에 보이는 `h2` ("가장 최근 브리핑" 등) |
+| 카테고리 목록 | `sr-only` `h2` — 디자인상 보이는 제목이 없어 넣은 것이니 지우지 마세요 |
+| 아카이브 | 월 그룹 `<h2 class="day__date">` |
+| 리포트 상세 | "오늘의 핵심" · 본문 `##` · "출처" |
+
+홈의 날짜 그룹은 `<span class="day__date">` 인데, 이미 `h2` 아래에 있어 그대로 두었습니다.
+아카이브만 최상위라 `h2` 입니다 — 같은 클래스지만 태그가 다른 건 의도된 것입니다.
+
+`.empty` 안내 상자의 제목도 전부 `h2` 입니다 (`h3` 로 되돌리면 `h1 → h3` 로 건너뜁니다).
+CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
+
 ### 클라이언트 JS
 
-프레임워크 아일랜드가 없습니다. 인터랙션은 `.astro` 안의 `<script is:inline>` 4개가 전부입니다.
+프레임워크 아일랜드가 없습니다. 인터랙션은 `.astro` 안의 인라인 스크립트 4개가 전부입니다.
+(`is:inline` 로 grep 하면 5건이 나오는데, 하나는 `BaseLayout` 의 JSON-LD 출력용 템플릿이라
+인터랙션이 아닙니다.)
 
 - 테마 부트스트랩(`<head>`) + 토글 핸들러 — `BaseLayout.astro`
 - 아카이브 검색·필터 — `archive.astro`. 빌드 시 각 행의 `data-text` 속성에 검색 대상(제목·요약·핵심·
   태그·카테고리명·날짜)을 미리 넣고 DOM 을 숨김/표시합니다. 별도 인덱스 파일이 없습니다.
   본문 전문 검색이 필요해지면 Pagefind 로 교체하는 게 표준 경로입니다 (README 참고).
-- 넓은 표를 가로 스크롤 컨테이너로 감싸기 — `[category]/[slug].astro`
+- 본문 가로 스크롤 처리 — `[category]/[slug].astro`. 넓은 표를 `.table-scroll` 로 감싸고
+  (`tabindex` + `role="region"`), 넘치는 코드 블록에만 `tabindex` 를 붙입니다. 코드 블록 판정은
+  폰트 스왑(`document.fonts.ready`)과 리사이즈 후 다시 합니다 — 첫 렌더 시점에는 폴백 폰트
+  기준이라 넘치지 않는 블록까지 잡힙니다.
 
 같은 성격의 기능을 추가할 때 프레임워크를 들이지 말고 이 패턴을 따르세요.
 

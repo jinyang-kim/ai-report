@@ -35,7 +35,9 @@
 ## 기술 스택
 
 - **Astro 7** — 정적 사이트 생성, 콘텐츠 컬렉션
-- **의존성 3개** (astro, @astrojs/rss, @astrojs/sitemap) — 프레임워크 런타임 없음, 클라이언트 JS 최소
+- **런타임 의존성 3개** (astro, @astrojs/rss, @astrojs/sitemap) — 프레임워크 런타임 없음,
+  클라이언트 JS 번들 0바이트 (인터랙션은 인라인 스크립트 4개가 전부)
+- **개발 의존성 2개** (@astrojs/check, typescript) — `npm run check` 전용, 빌드 산출물과 무관
 - **Vercel** — GitHub 연동 자동 배포
 
 ## 로컬 개발
@@ -173,10 +175,13 @@ IT·AI 브리핑을 11시 45분까지 기다릴 필요가 없습니다. 대신 �
 - **검색 범위** — 아카이브 검색은 제목·요약·핵심·태그·카테고리명·날짜를 대상으로 합니다. 본문 전문 검색이
   필요해지면 [Pagefind](https://pagefind.app/) 를 붙이는 게 표준 경로입니다
   (`npm i -D pagefind`, 빌드 스크립트를 `astro build && pagefind --site dist` 로 변경).
-- **폰트** — Pretendard 를 `public/fonts/pretendard/` 에 자체 호스팅합니다 (SIL OFL 1.1).
-  외부 CDN 의존이 없어 사내망에서도 동일하게 렌더되고, dynamic-subset 이라 실제로 쓰이는
-  유니코드 범위만 내려받습니다. 폰트를 빼고 싶으면 `BaseLayout.astro` 의 stylesheet 링크만
-  지우면 시스템 한글 폰트로 폴백합니다.
+- **폰트** — Pretendard **Variable** 을 `public/fonts/pretendard/` 에 자체 호스팅합니다
+  (SIL OFL 1.1, `font-weight: 45 920` 가변 축). 외부 CDN 의존이 없어 사내망에서도 동일하게
+  렌더되고, dynamic-subset 이라 브라우저가 실제로 쓰이는 유니코드 범위만 내려받습니다.
+  서브셋 3개(89·90·91)는 `<head>` 에서 preload 합니다 — 한국어 UI 텍스트의 약 84%(79KB)를
+  담당한다는 것을 빌드 산출물의 문자 분포로 재서 고른 값입니다. 폰트를 빼려면
+  `BaseLayout.astro` 의 **stylesheet 링크와 preload 3줄을 함께** 지우세요 (preload 만 남으면
+  쓰이지 않는 파일을 계속 내려받습니다). 시스템 한글 폰트로 폴백합니다.
 - **사이트 주소** — `astro.config.mjs` 가 환경변수 `SITE_URL` 을 읽고, 없으면 기본값
   `https://ai-report-jinyang.vercel.app` 을 씁니다. `public/robots.txt` 의 Sitemap 주소는
   하드코딩이므로 도메인을 바꿀 때 **두 곳을 같이** 고쳐야 합니다.
