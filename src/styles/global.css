@@ -25,6 +25,10 @@
   --cat-kr-daily:      #eb6834;
   --cat-it-ai:         #2a78d6;
   --cat-global-ui-ux:  #1baf7a;
+  --cat-electronics:   #0e9bb0;
+  --cat-health:        #d84a6a;
+  --cat-food-travel:   #d99019;
+  --cat-gaming:        #7c5cd6;
 
   /* 흰 글자를 얹는 자리 전용 (takeaway 번호·skip-link).
      장식용 --cat-* 는 흰 글자 대비가 2.8~4.4:1 밖에 안 나와 WCAG AA 에 미달합니다.
@@ -32,11 +36,19 @@
   --cat-kr-daily-solid:     #bd542a;
   --cat-it-ai-solid:        #2873ce;
   --cat-global-ui-ux-solid: #14835b;
+  --cat-electronics-solid:  #0c7d8f;
+  --cat-health-solid:       #c13456;
+  --cat-food-travel-solid:  #805008;
+  --cat-gaming-solid:       #6a49c4;
   --accent-solid:           #2873ce;
 
   --chip-kr-daily-bg:      #fdefe8;  --chip-kr-daily-fg:      #a8401a;
   --chip-it-ai-bg:         #e9f1fc;  --chip-it-ai-fg:         #1a5fae;
   --chip-global-ui-ux-bg:  #e4f6ef;  --chip-global-ui-ux-fg:  #0d6d4b;
+  --chip-electronics-bg:   #e2f5f8;  --chip-electronics-fg:   #0a6675;
+  --chip-health-bg:        #fdeaef;  --chip-health-fg:        #a82945;
+  --chip-food-travel-bg:   #fbf1dd;  --chip-food-travel-fg:   #8f5e0c;
+  --chip-gaming-bg:        #efeafb;  --chip-gaming-fg:        #543aa8;
 
   --alert-bg: #fdefe8;
   --alert-fg: #a8401a;
@@ -76,13 +88,25 @@
     --cat-kr-daily:     #d95926;
     --cat-it-ai:        #3987e5;
     --cat-global-ui-ux: #199e70;
+    --cat-electronics:  #1fb3c9;
+    --cat-health:       #e56b86;
+    --cat-food-travel:  #e5a72f;
+    --cat-gaming:       #9377e0;
     --cat-kr-daily-solid:     #c24f22;
     --cat-it-ai-solid:        #3174c5;
     --cat-global-ui-ux-solid: #14835d;
+    --cat-electronics-solid:  #116175;
+    --cat-health-solid:       #9c3648;
+    --cat-food-travel-solid:  #8a5e12;
+    --cat-gaming-solid:       #7a5cd0;
     --accent-solid:           #3174c5;
     --chip-kr-daily-bg:     #3a2118;  --chip-kr-daily-fg:     #f0956e;
     --chip-it-ai-bg:        #16283d;  --chip-it-ai-fg:        #7db4f0;
     --chip-global-ui-ux-bg: #13322a;  --chip-global-ui-ux-fg: #5cd0a4;
+    --chip-electronics-bg:  #0e2e33;  --chip-electronics-fg:  #5cccdd;
+    --chip-health-bg:       #3a1a22;  --chip-health-fg:       #f08ca0;
+    --chip-food-travel-bg:  #33280f;  --chip-food-travel-fg:  #f0c264;
+    --chip-gaming-bg:       #241a3a;  --chip-gaming-fg:       #b8a4f0;
     --alert-bg: #3a2118;
     --alert-fg: #f0956e;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
@@ -112,14 +136,26 @@
   --cat-kr-daily:     #d95926;
   --cat-it-ai:        #3987e5;
   --cat-global-ui-ux: #199e70;
+  --cat-electronics:  #1fb3c9;
+  --cat-health:       #e56b86;
+  --cat-food-travel:  #e5a72f;
+  --cat-gaming:       #9377e0;
   --cat-kr-daily-solid:     #c24f22;
   --cat-it-ai-solid:        #3174c5;
   --cat-global-ui-ux-solid: #14835d;
+  --cat-electronics-solid:  #116175;
+  --cat-health-solid:       #9c3648;
+  --cat-food-travel-solid:  #8a5e12;
+  --cat-gaming-solid:       #7a5cd0;
   --accent-solid:           #3174c5;
 
   --chip-kr-daily-bg:     #3a2118;  --chip-kr-daily-fg:     #f0956e;
   --chip-it-ai-bg:        #16283d;  --chip-it-ai-fg:        #7db4f0;
   --chip-global-ui-ux-bg: #13322a;  --chip-global-ui-ux-fg: #5cd0a4;
+  --chip-electronics-bg:  #0e2e33;  --chip-electronics-fg:  #5cccdd;
+  --chip-health-bg:       #3a1a22;  --chip-health-fg:       #f08ca0;
+  --chip-food-travel-bg:  #33280f;  --chip-food-travel-fg:  #f0c264;
+  --chip-gaming-bg:       #241a3a;  --chip-gaming-fg:       #b8a4f0;
 
   --alert-bg: #3a2118;
   --alert-fg: #f0956e;
@@ -350,6 +386,10 @@ a.chip:hover { filter: brightness(0.96); }
 .card--kr-daily     { --card-accent: var(--cat-kr-daily); }
 .card--it-ai        { --card-accent: var(--cat-it-ai); }
 .card--global-ui-ux { --card-accent: var(--cat-global-ui-ux); }
+.card--electronics  { --card-accent: var(--cat-electronics); }
+.card--health       { --card-accent: var(--cat-health); }
+.card--food-travel  { --card-accent: var(--cat-food-travel); }
+.card--gaming       { --card-accent: var(--cat-gaming); }
 
 .card__top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .card__date { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-inline-start: auto; }
