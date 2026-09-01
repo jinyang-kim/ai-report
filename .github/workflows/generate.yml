@@ -102,9 +102,14 @@ jobs:
 
       - name: Commit and push
         if: steps.exists.outputs.skip == 'false'
+        env:
+          GH_PUSH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "ai-report-bot"
           git config user.email "sunlover011@gmail.com"
+          # Claude Code Action 이 원격 인증을 App 설치 토큰으로 바꾼 뒤 스텝 종료 시 revoke 하므로,
+          # 워크플로 GITHUB_TOKEN 으로 원격 URL 을 명시 재설정한다 (contents:write 권한).
+          git remote set-url origin "https://x-access-token:${GH_PUSH_TOKEN}@github.com/${{ github.repository }}.git"
           git add "${{ steps.ctx.outputs.file }}"
           git commit -m "[${{ steps.ctx.outputs.category }}] ${{ steps.ctx.outputs.date }} 자동 생성"
           for i in 1 2 3; do
