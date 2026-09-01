@@ -376,6 +376,13 @@ a { color: inherit; }
 .chip--kr-daily     { background: var(--chip-kr-daily-bg);     color: var(--chip-kr-daily-fg); }
 .chip--it-ai        { background: var(--chip-it-ai-bg);        color: var(--chip-it-ai-fg); }
 .chip--global-ui-ux { background: var(--chip-global-ui-ux-bg); color: var(--chip-global-ui-ux-fg); }
+.chip--electronics  { background: var(--chip-electronics-bg);  color: var(--chip-electronics-fg); }
+.chip--health       { background: var(--chip-health-bg);       color: var(--chip-health-fg); }
+.chip--food-travel  { background: var(--chip-food-travel-bg);  color: var(--chip-food-travel-fg); }
+.chip--gaming       { background: var(--chip-gaming-bg);       color: var(--chip-gaming-fg); }
+.chip--education    { background: var(--chip-education-bg);     color: var(--chip-education-fg); }
+.chip--finance      { background: var(--chip-finance-bg);       color: var(--chip-finance-fg); }
+.chip--mobility     { background: var(--chip-mobility-bg);      color: var(--chip-mobility-fg); }
 .chip--alert        { background: var(--alert-bg);             color: var(--alert-fg); }
 .chip--plain {
   background: var(--surface-3); color: var(--ink-2);

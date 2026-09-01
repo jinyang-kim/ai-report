@@ -70,7 +70,7 @@ src/content/<category>/YYYY-MM-DD.md
 | `src/lib/categories.ts` | `CATEGORY_IDS` + `CATEGORIES` (이름·설명·accent 색) + **`CATEGORY_GROUPS`**(GNB 그룹 배정 — 빠지면 상단 네비에서 안 보임) |
 | `src/content.config.ts` | `collections` 맵 |
 | `src/lib/reports.ts` | `AnyEntry` 유니온 타입 |
-| `src/styles/global.css` | `--cat-*` / `--cat-*-solid` / `--chip-*-bg` / `--chip-*-fg` 토큰, `.card--*` 규칙 |
+| `src/styles/global.css` | `--cat-*` / `--cat-*-solid` / `--chip-*-bg` / `--chip-*-fg` 토큰, `.card--*` · `.chip--*` 규칙 |
 | `.github/prompts/<id>.md` | 생성 지침(`# 역할`·`# 리서치` 도메인별, `# 출력`·`# 금지` 는 바이트 동일) |
 | `.github/workflows/generate.yml` | cron 1줄 + schedule→category `case` 매핑 + 검증 whitelist + `workflow_dispatch` 설명 (cron·case 문자열 바이트 동일) |
 | `scripts/publish.py` | `CATEGORIES` 집합 (수동 발행용) |
