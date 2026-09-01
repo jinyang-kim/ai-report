@@ -1,0 +1,51 @@
+name: Quality
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npm run build
+      - name: pa11y-ci (build → preview → 검사)
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4321 &
+          PREVIEW_PID=$!
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:4321/ >/dev/null && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:4321/ >/dev/null || { echo "preview 서버 미기동"; kill $PREVIEW_PID 2>/dev/null; exit 1; }
+          npx --yes pa11y-ci@3 --config .pa11yci
+          STATUS=$?
+          kill $PREVIEW_PID 2>/dev/null
+          exit $STATUS
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npm run build
+      - name: Lighthouse CI (dist 자체 서빙 → 측정)
+        run: npx --yes @lhci/cli@0.14 autorun
