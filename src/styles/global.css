@@ -511,7 +511,7 @@ a.chip:hover { filter: brightness(0.96); }
   color: var(--accent-ink); text-decoration: none;
 }
 .sources a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.sources .host { color: var(--ink-4); font-size: 13px; }
+.sources .host { color: var(--ink-3); font-size: 13px; }
 
 /* ---------- pager ---------- */
 
