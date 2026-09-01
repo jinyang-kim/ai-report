@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트
 
-Astro 7 정적 사이트. 평일 아침 로컬 예약 작업이 생성한 세 갈래 브리핑 마크다운을 GitHub `main` 에
-커밋하면 Vercel 이 자동 재배포하는 아카이브입니다. 런타임 의존성은 3개
+Astro 7 정적 사이트. 평일 아침 GitHub Actions 가 Claude Code(구독 OAuth)로 생성한 세 갈래 브리핑
+마크다운을 GitHub `main` 에 커밋하면 Vercel 이 자동 재배포하는 아카이브입니다. 런타임 의존성은 3개
 (astro, @astrojs/rss, @astrojs/sitemap)뿐이고 프레임워크 런타임이 없습니다. 개발 의존성 2개
 (@astrojs/check, typescript)는 `npm run check` 전용이라 빌드 산출물에 들어가지 않습니다.
 UI 문구와 콘텐츠는 전부 한국어입니다.
@@ -34,6 +34,11 @@ python3 scripts/make-og.py   # public/og/*.png 재생성 (카테고리·브랜�
 - `npm run check` — 타입까지 봅니다. `.astro`/`.ts` 를 고쳤다면 이쪽도 돌리세요.
   zod 관련 deprecation hint 가 여럿 나오지만 error 0 이면 통과입니다.
 
+CI 게이트가 하나 더 있습니다 — PR 을 열면 `.github/workflows/quality.yml` 이 접근성·성능을 검사합니다
+(pa11y-ci `WCAG2AA` + Lighthouse CI, accessibility ≥ 0.9 는 실패 조건, perf·SEO 는 advisory). 도구는 CI 에서만
+`npx` 로 설치해 package.json 을 건드리지 않습니다. 콘텐츠는 `main` 에 직접 push 되므로, 이 게이트는
+템플릿·스타일을 바꾸는 사람 dev 의 PR 에서만 돕니다.
+
 ## 아키텍처
 
 ### 콘텐츠 파이프라인
@@ -46,7 +51,9 @@ src/content/<category>/YYYY-MM-DD.md
 ```
 
 - 파일명 = `entry.id` = `Report.slug` = URL slug. 프론트매터 `date` 와 반드시 일치해야 합니다
-  (`scripts/publish.py` 가 커밋 전에 검사).
+  (생성 워크플로의 빌드 게이트와 `scripts/publish.py` 가 커밋 전에 검사).
+- 프론트매터엔 자동생성 메타(`schemaVersion`/`generatedAt`/`generatedBy`/`sourceUrls`)가 optional 로 있습니다
+  — 값이 없어도 빌드는 통과(하위호환). 규격은 `src/content.config.ts`.
 - 페이지는 `getCollection` 을 직접 부르지 않고 `getAllReports()` / `getReportsByCategory()` 를 씁니다.
   draft 필터(`import.meta.env.DEV || !draft` — 개발 중에는 draft 도 보임)와 정렬이 여기서 한 번에 처리됩니다.
 - 라우팅은 전부 `getStaticPaths` 기반 정적 생성. `build.format: 'directory'` 라서 모든 내부 링크에
@@ -158,33 +165,38 @@ OG 이미지는 `public/og/{default,kr-daily,it-ai,global-ui-ux}.png` 4장이고
 파일**입니다. 빌드 때 만들지 않습니다. `scripts/make-og.py` 가 헤드리스 Chrome + `sips`(macOS 기본
 도구)로 1200×630 을 뽑습니다 — 이미지 라이브러리를 의존성에 넣지 않기 위한 선택입니다.
 
+`public/robots.txt` 는 주요 AI 크롤러(GPTBot·ClaudeBot·anthropic-ai·CCBot·Google-Extended·PerplexityBot 등)를
+명시적으로 `Allow` 합니다(공개 무료 아카이브). 리포트 상세 하단엔 "AI(Claude) 자동 생성" 고지
+`<footer class="ai-disclaimer">`(`--ink-3`, 출처가 있으면 `#sources` 앵커 링크)가 있습니다.
+
 ## 발행 흐름
 
 ```
-로컬 예약 작업 3개 → 리서치 → 마크다운 작성 → npm run build → git push (main) → Vercel 자동 배포
+GitHub Actions cron → Claude Code(구독 OAuth)로 리서치·마크다운 작성 → npm run build → git push (main) → Vercel 자동 배포
 ```
 
-Claude Code **로컬 예약 작업**(`~/.claude/scheduled-tasks/ai-report-*`)이 평일 아침에 돕니다.
-클라우드가 아니라 **이 맥에서** 실행되므로 저장된 git 자격증명을 그대로 쓰고, `GH_TOKEN` 이
-필요 없습니다.
+평일 아침 `.github/workflows/generate.yml` 이 카테고리별로 **Claude Code Action**(`claude_code_oauth_token`)을
+실행해 리포트를 생성합니다. 구독 사용이라 토큰당 API 과금이 없고, 클라우드에서 돌아 맥 의존이 없습니다.
 
-| taskId | cron | 실제 실행 (jitter 포함) |
+| 스케줄 (cron · UTC) | KST | 카테고리 |
 | --- | --- | --- |
-| `ai-report-kr-daily` | `5 9 * * 1-5` | ~09:11 KST |
-| `ai-report-it-ai` | `10 9 * * 1-5` | ~09:20 KST |
-| `ai-report-global-ui-ux` | `15 9 * * 1-5` | ~09:23 KST |
+| `5 0 * * 1-5` | 09:05 | kr-daily |
+| `10 0 * * 1-5` | 09:10 | it-ai |
+| `15 0 * * 1-5` | 09:15 | global-ui-ux |
 
-시스템이 부하 분산용 jitter(수 분)를 더하므로 cron 시각과 실제 실행 시각이 다릅니다.
+cron 은 UTC(`5 0` = 00:05 UTC = 09:05 KST). 리포트 날짜는 잡 안에서 `TZ=Asia/Seoul date +%F` 로 KST 산출합니다.
+카테고리별 프롬프트는 `.github/prompts/<category>.md`.
 
-- **앱이 열려 있어야 돕니다.** 예정 시각에 앱이 닫혀 있으면 다음 실행 시 밀려서 돕니다.
-  아침에 맥이 꺼져 있으면 리포트가 그만큼 늦습니다.
-- 각 작업은 **자기 파일 1개씩만** 커밋합니다. push 가 거부되면 rebase 후 최대 3회 재시도 —
-  서로 다른 파일을 쓰므로 rebase 는 항상 깨끗하게 통과합니다.
-- 같은 날짜 파일이 이미 있으면 **아무것도 하지 않고 종료**합니다 (덮어쓰기 방지).
-- 검증 게이트는 `npm run build` 입니다. zod 스키마 전체를 보므로 아래 `publish.py` 의 정규식
-  검사보다 강합니다. 빌드가 통과하지 않으면 커밋하지 않습니다.
+- 생성은 Claude 가 파일 Write 까지만 하고, **커밋/푸시는 워크플로 스텝이 결정적으로** 합니다(git 을 Claude 에 맡기지 않음).
+- 검증 게이트는 `npm run build`(zod). 통과해야만 커밋. 같은 날짜 파일이 있으면 skip(멱등). push 충돌 시 rebase 재시도 3회.
+- 실패 시 `cron-failure` 라벨 GitHub Issue 를 자동 생성합니다.
 
-작업 프롬프트를 고치려면 `~/.claude/scheduled-tasks/<taskId>/SKILL.md` 를 편집하세요.
+**가동 스위치 (현재 비활성)** — 워크플로는 `disabled_manually` 상태입니다. 켜려면(사용자 자격증명 필요):
+`github.com/apps/claude` 설치 → `claude setup-token` → repo secret `CLAUDE_CODE_OAUTH_TOKEN` 등록 →
+`gh workflow enable "Generate Reports"`. secret 없이 켜면 평일 아침 인증 실패로 이슈가 쌓여 일부러 꺼둔 것입니다.
+설계·계획 전문은 `docs/superpowers/specs|plans/2026-08-31-free-claude-report-service*`.
+
+로컬 예약작업(`~/.claude/scheduled-tasks/ai-report-*`)은 fallback 으로 보존합니다(프롬프트는 각 `SKILL.md`).
 
 ### scripts/publish.py — 수동 발행용
 
@@ -222,4 +234,7 @@ Claude Code **로컬 예약 작업**(`~/.claude/scheduled-tasks/ai-report-*`)이
 - `BaseLayout.astro` 의 폰트 `preload` 3개(서브셋 89·90·91)는 실제 빌드 산출물의 문자 분포를 재서
   고른 값입니다 — 한국어 UI 텍스트의 약 84%(79KB)를 담당합니다. 본문 언어나 카테고리 이름을 크게
   바꾸면 다시 재세요.
+- 모바일 좌우 여백은 `.wrap` 의 `max(20px, env(safe-area-inset-*))`(≤560px) + `<meta viewport ... viewport-fit=cover>`.
+  리포트 상세 `.article` 은 `padding-block` 만 지정해 `.wrap` 의 좌우 여백을 상속합니다 — `padding: X 0 Y` 로
+  되돌리면 상세 콘텐츠가 모바일에서 화면 끝에 붙습니다.
 - `_to_delete/` 는 gitignore 된 잡동사니 디렉터리입니다 (README.md 사본 포함). 검색·탐색에서 제외하세요.
