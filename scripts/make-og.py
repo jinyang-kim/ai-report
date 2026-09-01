@@ -52,7 +52,7 @@ CARDS = {
                       accent='#4f5bd5', chip=('#eef1fa', '#3d4899'), size=60),
     'finance': dict(title='경제·재테크 브리핑', short='경제',
                     desc='금리·부동산·주식·코인 등 한국 경제와 재테크 흐름을 정리합니다.',
-                    accent='#0f8a6a', chip=('#e0f3ee', '#0a5d4a'), size=60),
+                    accent='#94810a', chip=('#f8f0d0', '#6b5d05'), size=60),
     'mobility': dict(title='자동차·모빌리티 브리핑', short='모빌리티',
                      desc='전기차·신차·자율주행 등 자동차와 모빌리티 산업 동향을 정리합니다.',
                      accent='#d64545', chip=('#f5e8e8', '#a83534'), size=60),

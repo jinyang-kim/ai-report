@@ -81,8 +81,8 @@ export const CATEGORIES: Record<CategoryId, Category> = {
     name: '경제·재테크',
     short: '경제',
     description: '금리·부동산·주식·코인 등 한국 경제와 재테크 흐름을 정리합니다.',
-    accent: '#0f8a6a',
-    accentDark: '#17a37f',
+    accent: '#94810a',
+    accentDark: '#dcc24a',
   },
   mobility: {
     id: 'mobility',

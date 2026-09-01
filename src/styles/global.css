@@ -30,7 +30,7 @@
   --cat-food-travel:   #d99019;
   --cat-gaming:        #7c5cd6;
   --cat-education:     #4f5bd5;
-  --cat-finance:       #0f8a6a;
+  --cat-finance:       #94810a;
   --cat-mobility:      #d64545;
 
   /* 흰 글자를 얹는 자리 전용 (takeaway 번호·skip-link).
@@ -44,7 +44,7 @@
   --cat-food-travel-solid:  #805008;
   --cat-gaming-solid:       #6a49c4;
   --cat-education-solid:    #4048b8;
-  --cat-finance-solid:      #066e54;
+  --cat-finance-solid:      #6b5d00;
   --cat-mobility-solid:     #c13030;
   --accent-solid:           #2873ce;
 
@@ -56,7 +56,7 @@
   --chip-food-travel-bg:   #fbf1dd;  --chip-food-travel-fg:   #8f5e0c;
   --chip-gaming-bg:        #efeafb;  --chip-gaming-fg:        #543aa8;
   --chip-education-bg:     #eff0fb;  --chip-education-fg:     #2d3578;
-  --chip-finance-bg:       #e6f5f1;  --chip-finance-fg:       #065a45;
+  --chip-finance-bg:       #f8f0d0;  --chip-finance-fg:       #6b5d05;
   --chip-mobility-bg:      #fdedec;  --chip-mobility-fg:      #a8261d;
 
   --alert-bg: #fdefe8;
@@ -102,7 +102,7 @@
     --cat-food-travel:  #e5a72f;
     --cat-gaming:       #9377e0;
     --cat-education:    #7b8ae0;
-    --cat-finance:      #2cb399;
+    --cat-finance:      #dcc24a;
     --cat-mobility:     #e86767;
     --cat-kr-daily-solid:     #c24f22;
     --cat-it-ai-solid:        #3174c5;
@@ -112,7 +112,7 @@
     --cat-food-travel-solid:  #8a5e12;
     --cat-gaming-solid:       #7a5cd0;
     --cat-education-solid:    #4556ff;
-    --cat-finance-solid:      #004d33;
+    --cat-finance-solid:      #4a3d00;
     --cat-mobility-solid:     #7a0000;
     --accent-solid:           #3174c5;
     --chip-kr-daily-bg:     #3a2118;  --chip-kr-daily-fg:     #f0956e;
@@ -123,7 +123,7 @@
     --chip-food-travel-bg:  #33280f;  --chip-food-travel-fg:  #f0c264;
     --chip-gaming-bg:       #241a3a;  --chip-gaming-fg:       #b8a4f0;
     --chip-education-bg:    #1e2140;  --chip-education-fg:    #a8b3fa;
-    --chip-finance-bg:      #0d3d31;  --chip-finance-fg:      #5cddbe;
+    --chip-finance-bg:      #3a3210;  --chip-finance-fg:      #ecd47e;
     --chip-mobility-bg:     #3d1e1e;  --chip-mobility-fg:     #f5a0a0;
     --alert-bg: #3a2118;
     --alert-fg: #f0956e;
@@ -159,7 +159,7 @@
   --cat-food-travel:  #e5a72f;
   --cat-gaming:       #9377e0;
   --cat-education:    #7b8ae0;
-  --cat-finance:      #2cb399;
+  --cat-finance:      #dcc24a;
   --cat-mobility:     #e86767;
   --cat-kr-daily-solid:     #c24f22;
   --cat-it-ai-solid:        #3174c5;
@@ -169,7 +169,7 @@
   --cat-food-travel-solid:  #8a5e12;
   --cat-gaming-solid:       #7a5cd0;
   --cat-education-solid:    #4556ff;
-  --cat-finance-solid:      #004d33;
+  --cat-finance-solid:      #4a3d00;
   --cat-mobility-solid:     #7a0000;
   --accent-solid:           #3174c5;
 
@@ -181,7 +181,7 @@
   --chip-food-travel-bg:  #33280f;  --chip-food-travel-fg:  #f0c264;
   --chip-gaming-bg:       #241a3a;  --chip-gaming-fg:       #b8a4f0;
   --chip-education-bg:    #1e2140;  --chip-education-fg:    #a8b3fa;
-  --chip-finance-bg:      #0d3d31;  --chip-finance-fg:      #5cddbe;
+  --chip-finance-bg:      #3a3210;  --chip-finance-fg:      #ecd47e;
   --chip-mobility-bg:     #3d1e1e;  --chip-mobility-fg:     #f5a0a0;
 
   --alert-bg: #3a2118;
