@@ -1,4 +1,32 @@
 User-agent: *
 Allow: /
 
+# AI 크롤러 — 공개 무료 아카이브라 명시적으로 허용합니다.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
 Sitemap: https://ai-report-navy.vercel.app/sitemap-index.xml
