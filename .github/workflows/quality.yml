@@ -32,8 +32,10 @@ jobs:
             sleep 1
           done
           curl -sf http://127.0.0.1:4321/ >/dev/null || { echo "preview 서버 미기동"; kill $PREVIEW_PID 2>/dev/null; exit 1; }
+          set +e
           npx --yes pa11y-ci@3 --config .pa11yci
           STATUS=$?
+          set -e
           kill $PREVIEW_PID 2>/dev/null
           exit $STATUS
 
