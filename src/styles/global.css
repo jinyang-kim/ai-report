@@ -279,15 +279,54 @@ a { color: inherit; }
   background: linear-gradient(135deg, var(--cat-it-ai), var(--cat-global-ui-ux) 55%, var(--cat-kr-daily));
 }
 
-.nav { display: flex; align-items: center; gap: 2px; margin-inline-start: auto; }
-.nav a {
-  display: inline-flex; align-items: center; min-height: 32px;
+.nav { display: flex; align-items: center; gap: 4px; margin-inline-start: auto; }
+
+/* 공통 버튼형 스타일 — 아카이브 링크 + 그룹 summary */
+.nav-link,
+.nav-group__btn {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 32px;
   padding: 6px 11px; border-radius: var(--radius-sm);
   font-size: 14px; font-weight: 600; color: var(--ink-2); text-decoration: none;
-  transition: background .14s, color .14s; white-space: nowrap;
+  white-space: nowrap; cursor: pointer; user-select: none;
+  transition: background .14s, color .14s;
 }
-.nav a:hover { background: var(--surface-3); color: var(--ink); }
-.nav a[aria-current='page'] { color: var(--ink); background: var(--surface-3); }
+.nav-link:hover,
+.nav-group__btn:hover { background: var(--surface-3); color: var(--ink); }
+.nav-link[aria-current='page'] { color: var(--ink); background: var(--surface-3); }
+
+/* 그룹 드롭다운 (<details>/<summary>) — 무프레임워크 */
+.nav-group { position: relative; }
+.nav-group__btn { list-style: none; }
+.nav-group__btn::-webkit-details-marker { display: none; }
+.nav-group__btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.nav-group[open] > .nav-group__btn { background: var(--surface-3); color: var(--ink); }
+/* 현재 보는 카테고리가 속한 그룹은 앞에 점으로 표시 */
+.nav-group__btn[data-active] { color: var(--ink); }
+.nav-group__btn[data-active]::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; flex: none;
+}
+.nav-group__chev { width: 13px; height: 13px; opacity: .65; transition: transform .16s; }
+.nav-group[open] > .nav-group__btn .nav-group__chev { transform: rotate(180deg); }
+
+.nav-group__menu {
+  /* nav 가 우측 정렬이라 메뉴도 우측 기준으로 열어 뷰포트 밖으로 넘치지 않게 */
+  position: absolute; z-index: 60; inset-inline-end: 0; inset-inline-start: auto;
+  top: calc(100% + 6px);
+  min-width: 190px; margin: 0; padding: 6px; list-style: none;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
+}
+.nav-group__menu li { margin: 0; }
+.nav-group__menu a {
+  display: block; padding: 8px 10px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none;
+  white-space: nowrap; transition: background .14s, color .14s;
+}
+.nav-group__menu a:hover { background: var(--surface-3); color: var(--ink); }
+.nav-group__menu a[aria-current='page'] {
+  color: var(--ink); background: var(--surface-3); font-weight: 600;
+}
 
 .icon-btn {
   display: inline-grid; place-items: center; width: 34px; height: 34px; flex: none;
@@ -307,24 +346,22 @@ a { color: inherit; }
   :root[data-theme='light'] .theme-moon { display: none; }
 }
 
-/* 모바일: 브랜드+토글 한 줄, 메뉴는 그 아래 스크롤 가능한 줄로 */
-/* 태블릿 세로(~834px)부터는 짧은 라벨로 바꿔 헤더에 여백을 줍니다 */
-@media (max-width: 860px) {
-  .nav .nav__full { display: none; }
-}
-@media (min-width: 861px) { .nav .nav__short { display: none; } }
-
+/* 모바일: 브랜드+토글 한 줄, 그룹 메뉴 4개는 그 아래 한 줄로 */
 @media (max-width: 720px) {
   .hdr__in { height: auto; flex-wrap: wrap; gap: 8px; padding-block: 9px; }
   .brand { order: 1; }
   #theme-toggle { order: 2; margin-inline-start: auto; }
   .nav {
     order: 3; flex-basis: 100%; margin-inline-start: 0;
-    overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
-    margin-inline: -4px; padding-inline: 4px;
+    position: relative; flex-wrap: wrap; gap: 2px;
   }
-  .nav::-webkit-scrollbar { display: none; }
-  .nav a { padding: 6px 10px; font-size: 13.5px; }
+  .nav-link,
+  .nav-group__btn { padding: 6px 10px; font-size: 13.5px; }
+  /* 그룹이 4개뿐이라 가로 스크롤이 불필요 → 드롭다운을 nav 전체 폭 아래로 펼쳐 잘림 방지 */
+  .nav-group { position: static; }
+  .nav-group__menu {
+    inset-inline: 0; top: calc(100% + 6px); min-width: 0;
+  }
 }
 
 /* ---------- chips / badges ---------- */

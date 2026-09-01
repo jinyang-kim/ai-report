@@ -96,5 +96,19 @@ export const CATEGORIES: Record<CategoryId, Category> = {
 
 export const CATEGORY_LIST = CATEGORY_IDS.map((id) => CATEGORIES[id]);
 
+export interface CategoryGroup {
+  /** GNB 드롭다운 버튼 라벨 */
+  label: string;
+  /** 이 그룹에 속한 카테고리 — CATEGORY_IDS 부분집합, 전체 합집합은 10개 전부 */
+  ids: CategoryId[];
+}
+
+/** GNB 상단 네비를 3개 드롭다운으로 묶는다 (Phase B). 순서·소속을 바꾸면 여기만 고치면 된다. */
+export const CATEGORY_GROUPS: CategoryGroup[] = [
+  { label: '시사·경제', ids: ['kr-daily', 'finance', 'education'] },
+  { label: '기술', ids: ['it-ai', 'global-ui-ux', 'electronics', 'mobility'] },
+  { label: '컬처·라이프', ids: ['health', 'food-travel', 'gaming'] },
+];
+
 export const isCategoryId = (v: string): v is CategoryId =>
   (CATEGORY_IDS as readonly string[]).includes(v);

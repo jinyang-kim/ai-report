@@ -1,9 +1,14 @@
 ---
-import { CATEGORY_LIST } from '~/lib/categories';
+import { CATEGORY_GROUPS, CATEGORIES } from '~/lib/categories';
 
 const path = Astro.url.pathname;
 const isCurrent = (href: string) =>
   href === '/' ? path === '/' : path.startsWith(href) ? 'page' : undefined;
+const groups = CATEGORY_GROUPS.map((g) => ({
+  label: g.label,
+  cats: g.ids.map((id) => CATEGORIES[id]),
+}));
+const groupActive = (cats: { id: string }[]) => cats.some((c) => path.startsWith(`/${c.id}/`));
 ---
 
 <header class="hdr">
@@ -15,15 +20,27 @@ const isCurrent = (href: string) =>
 
     <nav class="nav" aria-label="주요 메뉴">
       {
-        CATEGORY_LIST.map((c) => (
-          <a href={`/${c.id}/`} aria-current={isCurrent(`/${c.id}/`)}>
-            <span class="nav__full">{c.name}</span>
-            <span class="nav__short">{c.short}</span>
-          </a>
+        groups.map((g) => (
+          <details class="nav-group" data-nav-group>
+            <summary class="nav-group__btn" data-active={groupActive(g.cats) ? '' : undefined}>
+              <span>{g.label}</span>
+              <svg class="nav-group__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
+            <ul class="nav-group__menu">
+              {g.cats.map((c) => (
+                <li>
+                  <a href={`/${c.id}/`} aria-current={isCurrent(`/${c.id}/`)}>
+                    {c.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
         ))
       }
-      <a href="/archive/" aria-current={isCurrent('/archive/')}>아카이브</a>
-
+      <a class="nav-link" href="/archive/" aria-current={isCurrent('/archive/')}>아카이브</a>
     </nav>
 
     <button id="theme-toggle" class="icon-btn" type="button" aria-label="다크 모드로 전환">
@@ -37,3 +54,28 @@ const isCurrent = (href: string) =>
     </button>
   </div>
 </header>
+
+<script is:inline>
+  // GNB 그룹 드롭다운(<details>) 보강: 열기 시 다른 그룹 닫기 · Escape · 바깥 클릭.
+  // 토글/키보드/aria 는 네이티브 <details>/<summary> 가 처리한다(무프레임워크).
+  (() => {
+    const groups = Array.from(document.querySelectorAll('[data-nav-group]'));
+    if (!groups.length) return;
+    for (const d of groups) {
+      d.addEventListener('toggle', () => {
+        if (d.open) for (const o of groups) if (o !== d) o.open = false;
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const open = groups.find((d) => d.open);
+      if (!open) return;
+      open.open = false;
+      open.querySelector('summary')?.focus();
+    });
+    document.addEventListener('click', (e) => {
+      if (e.target instanceof Element && e.target.closest('[data-nav-group]')) return;
+      for (const d of groups) d.open = false;
+    });
+  })();
+</script>
