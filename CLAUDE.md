@@ -61,16 +61,19 @@ src/content/<category>/YYYY-MM-DD.md
 
 ### 카테고리 추가·변경 시 손대야 하는 곳
 
-카테고리 ID 3개(`kr-daily`, `it-ai`, `global-ui-ux`)가 6개 파일에 하드코딩되어 있습니다.
-하나라도 빠지면 빌드 실패 또는 조용한 스타일 누락으로 이어집니다.
+카테고리 ID(현재 10개: `kr-daily`, `it-ai`, `global-ui-ux`, `electronics`, `health`, `food-travel`,
+`gaming`, `education`, `finance`, `mobility`)가 아래 지점에 하드코딩되어 있습니다.
+하나라도 빠지면 빌드 실패, 조용한 스타일 누락, 또는 GNB·자동 생성에서 누락으로 이어집니다.
 
 | 파일 | 내용 |
 | --- | --- |
-| `src/lib/categories.ts` | `CATEGORY_IDS` + `CATEGORIES` (이름·설명·accent 색) |
+| `src/lib/categories.ts` | `CATEGORY_IDS` + `CATEGORIES` (이름·설명·accent 색) + **`CATEGORY_GROUPS`**(GNB 그룹 배정 — 빠지면 상단 네비에서 안 보임) |
 | `src/content.config.ts` | `collections` 맵 |
 | `src/lib/reports.ts` | `AnyEntry` 유니온 타입 |
 | `src/styles/global.css` | `--cat-*` / `--cat-*-solid` / `--chip-*-bg` / `--chip-*-fg` 토큰, `.card--*` 규칙 |
-| `scripts/publish.py` | `CATEGORIES` 집합 |
+| `.github/prompts/<id>.md` | 생성 지침(`# 역할`·`# 리서치` 도메인별, `# 출력`·`# 금지` 는 바이트 동일) |
+| `.github/workflows/generate.yml` | cron 1줄 + schedule→category `case` 매핑 + 검증 whitelist + `workflow_dispatch` 설명 (cron·case 문자열 바이트 동일) |
+| `scripts/publish.py` | `CATEGORIES` 집합 (수동 발행용) |
 | `scripts/make-og.py` | `CARDS` 딕셔너리 → 실행해서 `public/og/<id>.png` 생성 |
 
 ### 날짜 — UTC 게터를 쓰는 이유
@@ -129,11 +132,16 @@ CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
 
 ### 클라이언트 JS
 
-프레임워크 아일랜드가 없습니다. 인터랙션은 `.astro` 안의 인라인 스크립트 4개가 전부입니다.
-(`is:inline` 로 grep 하면 5건이 나오는데, 하나는 `BaseLayout` 의 JSON-LD 출력용 템플릿이라
+프레임워크 아일랜드가 없습니다. 인터랙션은 `.astro` 안의 인라인 스크립트 5개가 전부입니다.
+(`is:inline` 로 grep 하면 6건이 나오는데, 하나는 `BaseLayout` 의 JSON-LD 출력용 템플릿이라
 인터랙션이 아닙니다.)
 
 - 테마 부트스트랩(`<head>`) + 토글 핸들러 — `BaseLayout.astro`
+- GNB 그룹 드롭다운 — `Header.astro`. 카테고리 10개를 `CATEGORY_GROUPS`(3그룹)로 묶어 네이티브
+  `<details>/<summary>` 로 렌더합니다. 토글·키보드·aria 는 브라우저가 처리하고, 인라인 스크립트는
+  보강만 합니다 — 한 그룹을 열면 나머지 닫기, Escape(포커스 복귀), 바깥 클릭 닫기. 프레임워크 없이
+  접근 가능한 드롭다운을 만드는 표준 패턴이니 메뉴류를 추가할 때 이 방식을 따르세요. 데스크톱은
+  우측 정렬 컴팩트 패널, 모바일(≤720px)은 nav 전체 폭 패널(`.nav-group { position: static }`)입니다.
 - 아카이브 검색·필터 — `archive.astro`. 빌드 시 각 행의 `data-text` 속성에 검색 대상(제목·요약·핵심·
   태그·카테고리명·날짜)을 미리 넣고 DOM 을 숨김/표시합니다. 별도 인덱스 파일이 없습니다.
   본문 전문 검색이 필요해지면 Pagefind 로 교체하는 게 표준 경로입니다 (README 참고).
