@@ -102,7 +102,7 @@ const host = (url: string) => {
 
     {
       entry.data.sources.length > 0 && (
-        <section class="sources">
+        <section class="sources" id="sources">
           <h2>출처</h2>
           <ol>
             {entry.data.sources.map((s) => (
@@ -136,6 +136,20 @@ const host = (url: string) => {
         </nav>
       )
     }
+
+    <footer class="ai-disclaimer">
+      <p>
+        이 리포트는 AI(Claude)가 자동 생성한 요약입니다. 중요한 내용은{' '}
+        {
+          entry.data.sources.length > 0 ? (
+            <a href="#sources">원본 출처</a>
+          ) : (
+            <span>원본 출처</span>
+          )
+        }
+        로 반드시 확인하세요.
+      </p>
+    </footer>
   </article>
 
   <script is:inline>

@@ -531,6 +531,19 @@ a.chip:hover { filter: brightness(0.96); }
 .pager span { font-size: 14.5px; font-weight: 600; letter-spacing: -0.02em; }
 .pager a:last-child:nth-child(2) { text-align: end; }
 
+/* ---------- ai-disclaimer ---------- */
+
+.ai-disclaimer {
+  max-width: var(--maxw-prose); margin-top: 2rem;
+  padding-top: 1rem; border-top: 1px solid var(--line);
+}
+.ai-disclaimer p { font-size: 13px; color: var(--ink-3); }
+.ai-disclaimer a {
+  color: var(--ink-3); text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 2px;
+}
+.ai-disclaimer a:hover { color: var(--ink-2); }
+
 /* ---------- search ---------- */
 
 .search { margin-bottom: 26px; }
