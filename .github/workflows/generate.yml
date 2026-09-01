@@ -10,10 +10,13 @@ on:
     - cron: "37 0 * * 1-5"  # 00:37 UTC = 09:37 KST (health)
     - cron: "45 0 * * 1-5"  # 00:45 UTC = 09:45 KST (food-travel)
     - cron: "53 0 * * 1-5"  # 00:53 UTC = 09:53 KST (gaming)
+    - cron: "1 1 * * 1-5"   # 01:01 UTC = 10:01 KST (education)
+    - cron: "9 1 * * 1-5"   # 01:09 UTC = 10:09 KST (finance)
+    - cron: "17 1 * * 1-5"  # 01:17 UTC = 10:17 KST (mobility)
   workflow_dispatch:
     inputs:
       category:
-        description: "kr-daily | it-ai | global-ui-ux | electronics | health | food-travel | gaming"
+        description: "kr-daily | it-ai | global-ui-ux | electronics | health | food-travel | gaming | education | finance | mobility"
         required: true
       date:
         description: "YYYY-MM-DD (비우면 오늘 KST)"
@@ -49,10 +52,13 @@ jobs:
             "37 0 * * 1-5") CATEGORY=health ;;
             "45 0 * * 1-5") CATEGORY=food-travel ;;
             "53 0 * * 1-5") CATEGORY=gaming ;;
+            "1 1 * * 1-5")  CATEGORY=education ;;
+            "9 1 * * 1-5")  CATEGORY=finance ;;
+            "17 1 * * 1-5") CATEGORY=mobility ;;
             *)              CATEGORY="${{ github.event.inputs.category }}" ;;
           esac
           case "$CATEGORY" in
-            kr-daily|it-ai|global-ui-ux|electronics|health|food-travel|gaming) ;;
+            kr-daily|it-ai|global-ui-ux|electronics|health|food-travel|gaming|education|finance|mobility) ;;
             *) echo "잘못된 category: '$CATEGORY'"; exit 1 ;;
           esac
           DATE="${{ github.event.inputs.date }}"
