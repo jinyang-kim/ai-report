@@ -35,6 +35,18 @@ CARDS = {
     'global-ui-ux': dict(title='글로벌 UI·UX 브리핑', short='UI·UX',
                          desc='디자인 트렌드 · UX 사례 · 리서치 수치',
                          accent='#1baf7a', chip=('#e4f6ef', '#0d6d4b'), size=60),
+    'electronics': dict(title='전자기기 브리핑', short='전자',
+                        desc='가전·모바일·반도체·IT기기의 신제품과 리뷰',
+                        accent='#0e9bb0', chip=('#ddf3f1', '#0d7a85'), size=60),
+    'health': dict(title='의료·헬스케어 브리핑', short='의료',
+                   desc='한국 의료·바이오·제약·헬스케어와 건강 정책',
+                   accent='#d84a6a', chip=('#f5dfe6', '#a83960'), size=60),
+    'food-travel': dict(title='맛집·여행 브리핑', short='맛집',
+                        desc='한국에서 화제인 맛집과 여행지 · 트렌드 정보',
+                        accent='#d99019', chip=('#f6ead8', '#b5740f'), size=60),
+    'gaming': dict(title='게임 브리핑', short='게임',
+                   desc='온라인·모바일·콘솔 게임 · 이스포츠 · 업계 동향',
+                   accent='#7c5cd6', chip=('#f0e8fa', '#5a3fa5'), size=60),
 }
 
 TPL = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
