@@ -1,4 +1,4 @@
-export const CATEGORY_IDS = ['kr-daily', 'it-ai', 'global-ui-ux', 'electronics', 'health', 'food-travel', 'gaming'] as const;
+export const CATEGORY_IDS = ['kr-daily', 'it-ai', 'global-ui-ux', 'electronics', 'health', 'food-travel', 'gaming', 'education', 'finance', 'mobility'] as const;
 export type CategoryId = (typeof CATEGORY_IDS)[number];
 
 export interface Category {
@@ -67,6 +67,30 @@ export const CATEGORIES: Record<CategoryId, Category> = {
     description: '온라인·모바일·콘솔 게임의 출시, 업데이트, 이스포츠와 업계 동향을 정리합니다.',
     accent: '#7c5cd6',
     accentDark: '#9377e0',
+  },
+  education: {
+    id: 'education',
+    name: '교육',
+    short: '교육',
+    description: '한국 입시·수능·교육정책·사교육·에듀테크·대학, 그리고 교육청 소식까지 정리합니다.',
+    accent: '#4f5bd5',
+    accentDark: '#6b76e0',
+  },
+  finance: {
+    id: 'finance',
+    name: '경제·재테크',
+    short: '경제',
+    description: '금리·부동산·주식·코인 등 한국 경제와 재테크 흐름을 정리합니다.',
+    accent: '#0f8a6a',
+    accentDark: '#17a37f',
+  },
+  mobility: {
+    id: 'mobility',
+    name: '자동차·모빌리티',
+    short: '모빌리티',
+    description: '전기차·신차·자율주행 등 자동차와 모빌리티 산업 동향을 정리합니다.',
+    accent: '#d64545',
+    accentDark: '#e06060',
   },
 };
 

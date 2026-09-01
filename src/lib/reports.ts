@@ -8,7 +8,10 @@ export type AnyEntry =
   | CollectionEntry<'electronics'>
   | CollectionEntry<'health'>
   | CollectionEntry<'food-travel'>
-  | CollectionEntry<'gaming'>;
+  | CollectionEntry<'gaming'>
+  | CollectionEntry<'education'>
+  | CollectionEntry<'finance'>
+  | CollectionEntry<'mobility'>;
 
 export interface Report {
   entry: AnyEntry;

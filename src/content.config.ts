@@ -51,4 +51,7 @@ export const collections = {
   health: collection('health'),
   'food-travel': collection('food-travel'),
   gaming: collection('gaming'),
+  education: collection('education'),
+  finance: collection('finance'),
+  mobility: collection('mobility'),
 };
