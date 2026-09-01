@@ -1,6 +1,6 @@
 # 마크다운 작성 규격
 
-예약 작업이 생성하는 리포트는 이 규격을 지켜야 합니다.
+GitHub Actions가 생성하는 리포트는 이 규격을 지켜야 합니다.
 어긋나면 Vercel 빌드가 실패하고 사이트가 갱신되지 않습니다.
 
 ---
@@ -54,6 +54,10 @@ sources:
 | `alert` | | 불리언 | `true` 면 🔔 조치 필요 배지. 기본 `false` |
 | `sources` | | `{title, url}` 배열 | 본문 하단 출처 목록. `url` 은 유효한 절대 URL이어야 합니다 |
 | `draft` | | 불리언 | `true` 면 빌드에서 제외 |
+| `schemaVersion` | | 문자열 | 스키마 버전. 기본값 `"1.0"`. 마이그레이션 추적용. 생성 워크플로가 자동으로 채우며, 손으로 쓸 땐 비워도 빌드 통과(하위호환) |
+| `generatedAt` | | 문자열 (ISO 8601) | 생성 시각. 예: `"2026-08-31T09:00:00+09:00"`. 선택사항. 생성 워크플로가 자동으로 채웁니다 |
+| `generatedBy` | | 문자열 | 생성 주체. `"manual"` 또는 `"claude-code"`. 선택사항. 생성 워크플로가 자동으로 채웁니다 |
+| `sourceUrls` | | URL 문자열 배열 | 리서치에 사용한 원본 URL 목록 (`sources` 와 별개로 전체 추적용). 기본값 `[]`. 생성 워크플로가 자동으로 채우며, 손으로 쓸 땐 비워도 빌드 통과 |
 
 ### 자주 나는 오류
 
@@ -98,14 +102,43 @@ sources:
 
 ---
 
-## 발행 (예약 작업이 실행하는 부분)
+## 발행
+
+### GitHub Actions (주 경로)
+
+평일 아침 `.github/workflows/generate.yml` 이 카테고리별로 Claude Code Action 을 실행해 리포트를 생성합니다.
+구독 사용이므로 API 과금이 없고, 클라우드에서 돌아 로컬 맥 의존이 없습니다.
+
+| 스케줄 (cron · UTC) | KST | 카테고리 |
+| --- | --- | --- |
+| `5 0 * * 1-5` | 09:05 | kr-daily |
+| `10 0 * * 1-5` | 09:10 | it-ai |
+| `15 0 * * 1-5` | 09:15 | global-ui-ux |
+
+**중요한 점:**
+- **Claude 는 파일 Write 까지만 합니다.** 커밋과 푸시는 워크플로 스텝이 결정적으로 `GITHUB_TOKEN` 으로 수행합니다.
+  (파인그레인드 PAT 불필요)
+- 검증 게이트는 `npm run build`(zod). 통과해야만 커밋합니다.
+- 멱등성: 같은 날짜 파일이 있으면 skip 합니다.
+- 실패 시 `cron-failure` 라벨 GitHub Issue 를 자동 생성합니다.
+
+**가동 스위치 (현재 비활성)** — 워크플로는 `disabled_manually` 상태입니다.
+켜려면 (사용자 자격증명 필요):
+
+1. `github.com/apps/claude` 설치
+2. `claude setup-token` 실행
+3. repo secret `CLAUDE_CODE_OAUTH_TOKEN` 등록
+4. `gh workflow enable "Generate Reports"` 로 활성화
+
+### 수동/폴백 발행
+
+로컬이나 다른 환경에서 발행할 때는 두 가지 방법이 있습니다.
+
+#### Git 프로토콜을 쓰는 수동 발행
 
 **git 프로토콜을 씁니다.** GitHub REST API(`api.github.com/repos/*`)는 실행 환경의 게이트웨이에서
 차단되는 경우가 있어 신뢰할 수 없습니다. `git clone`/`git push` 는 공개·비공개 저장소 모두에서
 정상 동작합니다.
-
-예약 작업 프롬프트에는 아래 스니펫이 그대로 들어갑니다 (외부 파일을 내려받지 않으므로
-저장소가 private 이어도 동일하게 동작합니다).
 
 ```bash
 export GH_TOKEN="github_pat_..."          # 파인그레인드 PAT, Contents: Read and write
@@ -128,8 +161,10 @@ git push -q origin HEAD \
 echo "발행 완료"
 ```
 
-마지막 줄의 `||` 는 **다른 예약 작업이 먼저 push 한 경우**를 위한 재시도입니다.
+마지막 줄의 `||` 는 **다른 작업이 먼저 push 한 경우**를 위한 재시도입니다.
 세 작업이 각각 다른 파일을 쓰므로 rebase 는 항상 깨끗하게 통과합니다.
+
+#### scripts/publish.py — 스크립트 검증 발행
 
 로컬에서 수동으로 올릴 때는 저장소에 들어 있는 스크립트를 쓰는 편이 낫습니다 —
 프론트매터 검증까지 해줍니다.

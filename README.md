@@ -11,41 +11,41 @@
 ## 동작 방식
 
 ```
-평일 아침  로컬 예약 작업 3개가 각각 시작
+평일 아침 GitHub Actions cron
         │
-        ├─ 웹 리서치 → 마크다운 작성
+        ├─ Claude Code(구독 OAuth)로 웹 리서치 → 마크다운 작성
         ▼
    npm run build (콘텐츠 스키마 검증 게이트)
         │
-        ▼
-   git commit → push → GitHub 저장소 (main)
-                              │ 자동 트리거
-                              ▼
-                      Vercel 빌드 & 배포 (30초~1분)
+        ├─ 통과 → git commit → push → GitHub 저장소 (main)
+        │                              │ 자동 트리거
+        │                              ▼
+        │                      Vercel 빌드 & 배포 (30초~1분)
+        │
+        └─ 실패 → cron-failure 이슈 생성
 ```
 
-Claude Code **로컬 예약 작업**입니다 (`~/.claude/scheduled-tasks/ai-report-*`).
-클라우드가 아니라 이 맥에서 돌기 때문에 저장된 git 자격증명을 그대로 쓰고, 발행용 토큰이
-필요 없습니다.
+**GitHub Actions 파이프라인**입니다. `.github/workflows/generate.yml` 이 클라우드에서 평일 아침마다
+카테고리별로 Claude Code Action(`claude_code_oauth_token`)을 실행해 리포트를 생성합니다.
+구독 사용이라 토큰당 API 과금이 없고, 맥 의존 없이 클라우드에서 돕니다.
 
-| 작업 | cron | 실제 실행 |
+| 카테고리 | cron (UTC) | KST |
 | --- | --- | --- |
-| 한국 데일리 브리핑 | `5 9 * * 1-5` | ~09:11 KST |
-| IT·AI 심층 스크랩 | `10 9 * * 1-5` | ~09:20 KST |
-| 글로벌 UI·UX 브리핑 | `15 9 * * 1-5` | ~09:23 KST |
+| 한국 데일리 브리핑 | `5 0 * * 1-5` | 09:05 |
+| IT·AI 심층 스크랩 | `10 0 * * 1-5` | 09:10 |
+| 글로벌 UI·UX 브리핑 | `15 0 * * 1-5` | 09:15 |
 
-시스템이 부하 분산용 jitter(수 분)를 더하므로 cron 시각과 실제 실행 시각이 다릅니다.
-각 작업은 **자기 파일 1개만** 커밋하고, push 가 거부되면 rebase 후 최대 3회 재시도합니다 —
-서로 다른 파일을 쓰므로 항상 깨끗하게 통과합니다. 같은 날짜 파일이 이미 있으면 아무것도
-하지 않고 종료해 덮어쓰기를 막습니다.
+Claude 는 Write 까지만 하고, **커밋/푸시는 워크플로 스텝이 결정적으로** 수행합니다 (git 을
+Claude 에 맡기지 않음). 검증 게이트는 `npm run build` (zod 스키마). 같은 날짜 파일이 있으면
+skip(멱등). 푸시 충돌 시 rebase 후 최대 3회 재시도합니다. 실패 시 `cron-failure` 라벨 이슈를
+자동 생성합니다.
 
-> **앱이 열려 있어야 돕니다.** 예정 시각에 Claude Code 가 닫혀 있으면 다음 실행 시 밀려서
-> 돕니다. 아침에 맥이 꺼져 있으면 리포트가 그만큼 늦게 올라옵니다.
+**가동 스위치 (현재 비활성)** — 워크플로는 `disabled_manually` 상태입니다. 켜려면(사용자
+자격증명 필요): `github.com/apps/claude` 설치 → `claude setup-token` → repo secret
+`CLAUDE_CODE_OAUTH_TOKEN` 등록 → `gh workflow enable "Generate Reports"`.
 
-`scripts/publish.py` 는 파이프라인에서 더 이상 쓰지 않지만, 손으로 올리거나 다른 환경에서
-발행할 때 쓰는 도구로 남아 있습니다 (`GH_TOKEN`·`GH_REPO` 필요). 이쪽은 GitHub REST API 가
-아니라 **git 프로토콜**을 씁니다 — API 는 실행 환경 게이트웨이에서 차단될 수 있어
-신뢰할 수 없기 때문입니다.
+로컬 예약작업(`~/.claude/scheduled-tasks/ai-report-*`)과 `scripts/publish.py`(git 프로토콜)는
+fallback/수동 경로로 남아 있습니다.
 
 ## 기술 스택
 
@@ -96,7 +96,7 @@ public/
 ├── fonts/pretendard/        자체 호스팅 Pretendard Variable (SIL OFL 1.1)
 ├── og/                      소셜 미리보기 이미지 4장 (커밋된 정적 파일)
 └── robots.txt               Sitemap 주소가 하드코딩되어 있습니다
-scripts/publish.py           예약 작업이 쓰는 커밋 스크립트
+scripts/publish.py           수동/폴백 발행 스크립트
 scripts/make-og.py           public/og/*.png 재생성 (카테고리·브랜드 변경 시에만)
 vercel.json                  폰트·OG 이미지 캐시 헤더
 docs/SETUP.md                GitHub · Vercel 연결 절차
@@ -130,10 +130,10 @@ npm run build   # 스키마 위반이 있으면 여기서 잡힙니다
 잡힙니다. 카테고리 페이지에서는 해당 카테고리 피드가 먼저 노출됩니다.
 
 **갱신 시점** — 피드는 정적 파일이라 *빌드될 때* 다시 만들어집니다.
-그리고 각 예약 작업은 **자기 실행이 끝나는 시점에 자기 파일 1개를 독립적으로 커밋**합니다.
+GitHub Actions 워크플로는 **카테고리별로 독립적으로 커밋**합니다.
 세 작업을 모아 한 번에 올리지 않습니다.
 
-세 작업은 ~09:11 / ~09:20 / ~09:23 KST 에 각각 시작하고, 리서치에 걸리는 시간만큼 뒤에
+세 워크플로는 09:05 / 09:10 / 09:15 KST 에 각각 시작하고, 리서치에 걸리는 시간만큼 뒤에
 커밋합니다. 따라서 사이트는 아침 내내 순차적으로 채워지고 Vercel 빌드도 하루 3번 따로 돕니다.
 
 ```
@@ -184,11 +184,15 @@ global-ui-ux 커밋  → 빌드 → 1~2분 후 반영 (피드에 3건)
   `BaseLayout.astro` 의 **stylesheet 링크와 preload 3줄을 함께** 지우세요 (preload 만 남으면
   쓰이지 않는 파일을 계속 내려받습니다). 시스템 한글 폰트로 폴백합니다.
 - **사이트 주소** — `astro.config.mjs` 가 환경변수 `SITE_URL` 을 읽고, 없으면 기본값
-  `https://ai-report-navy.vercel.app` 을 씁니다. `public/robots.txt` 의 Sitemap 주소는
-  하드코딩이므로 도메인을 바꿀 때 **두 곳을 같이** 고쳐야 합니다.
+  `https://ai-report-navy.vercel.app` 을 씁니다. 도메인을 바꿀 때는 **세 곳을 같이** 고쳐야 합니다:
+  `astro.config.mjs` (SITE 기본값) · `public/robots.txt` (Sitemap 주소) · `scripts/make-og.py` (OG 이미지 하단 문구).
 - **소셜 미리보기** — 모든 페이지에 `og:image` 가 붙습니다. 카테고리별로 다른 이미지를 쓰고,
   카테고리·브랜드 색을 바꿨다면 `python3 scripts/make-og.py` 로 다시 뽑으세요
   (헤드리스 Chrome + macOS `sips` 만 씁니다 — 이미지 라이브러리 의존성 없음).
+- **품질 게이트** — PR 을 열면 `.github/workflows/quality.yml` 이 접근성(pa11y-ci WCAG2AA, ≥0.9)과
+  성능(Lighthouse CI)을 검사합니다. 콘텐츠는 `main` 에 직접 push 되므로 이 게이트는 템플릿·스타일 변경자의 dev PR 에서만 돕니다.
+- **로봇·AI 크롤러** — `public/robots.txt` 는 주요 AI 크롤러(GPTBot·ClaudeBot·anthropic-ai·CCBot·Google-Extended·PerplexityBot 등)를
+  명시적으로 `Allow` 합니다(공개 무료 아카이브). 리포트 상세 하단에는 "AI(Claude) 자동 생성" 고지(`<footer class="ai-disclaimer">`, `--ink-3`)가 있습니다.
 - **구조화 데이터** — 리포트 상세에 `BlogPosting`, 목록에 `CollectionPage`, 모든 하위 페이지에
   `BreadcrumbList` 를 JSON-LD 로 넣습니다 (`src/lib/schema.ts`). 프론트매터 값만 쓰므로 리포트를
   쓸 때 따로 채울 항목은 없습니다.
