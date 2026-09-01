@@ -47,6 +47,15 @@ CARDS = {
     'gaming': dict(title='게임 브리핑', short='게임',
                    desc='온라인·모바일·콘솔 게임 · 이스포츠 · 업계 동향',
                    accent='#7c5cd6', chip=('#f0e8fa', '#5a3fa5'), size=60),
+    'education': dict(title='교육 브리핑', short='교육',
+                      desc='한국 입시·수능·교육정책·사교육·에듀테크·대학, 그리고 교육청 소식까지 정리합니다.',
+                      accent='#4f5bd5', chip=('#eef1fa', '#3d4899'), size=60),
+    'finance': dict(title='경제·재테크 브리핑', short='경제',
+                    desc='금리·부동산·주식·코인 등 한국 경제와 재테크 흐름을 정리합니다.',
+                    accent='#0f8a6a', chip=('#e0f3ee', '#0a5d4a'), size=60),
+    'mobility': dict(title='자동차·모빌리티 브리핑', short='모빌리티',
+                     desc='전기차·신차·자율주행 등 자동차와 모빌리티 산업 동향을 정리합니다.',
+                     accent='#d64545', chip=('#f5e8e8', '#a83534'), size=60),
 }
 
 TPL = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
