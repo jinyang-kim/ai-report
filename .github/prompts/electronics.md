@@ -26,7 +26,7 @@
 - 프론트매터는 아래 필드를 정확히 채운다 (src/content.config.ts 스키마와 일치해야 함):
   - **title**: string (리포트 제목)
   - **date**: 오늘 KST 날짜 YYYY-MM-DD (파일명과 반드시 동일)
-  - **summary**: 2~3문장 한 줄 요약
+  - **summary**: 2~3문장 한 줄 요약. YAML 한 줄 큰따옴표 스칼라로 쓴다 — `summary: "…"`. 블록 스칼라(`>-`·`|`)나 여러 줄로 쓰지 않는다.
   - **highlights**: 문자열 3개 배열 ("오늘의 핵심")
   - **tags**: 문자열 배열
   - **alert**: 즉시 조치 이슈가 있으면 true, 없으면 false
