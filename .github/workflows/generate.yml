@@ -2,17 +2,19 @@ name: Generate Reports
 
 on:
   schedule:
-    # cron 은 UTC. 각 줄이 별도 일정 (평일). 8분 간격 — 생성이 느려도 겹치지 않게(concurrency 대기 취소 방지):
-    - cron: "5 0 * * 1-5"   # 00:05 UTC = 09:05 KST (kr-daily)
-    - cron: "13 0 * * 1-5"  # 00:13 UTC = 09:13 KST (it-ai)
-    - cron: "21 0 * * 1-5"  # 00:21 UTC = 09:21 KST (global-ui-ux)
-    - cron: "29 0 * * 1-5"  # 00:29 UTC = 09:29 KST (electronics)
-    - cron: "37 0 * * 1-5"  # 00:37 UTC = 09:37 KST (health)
-    - cron: "45 0 * * 1-5"  # 00:45 UTC = 09:45 KST (food-travel)
-    - cron: "53 0 * * 1-5"  # 00:53 UTC = 09:53 KST (gaming)
-    - cron: "1 1 * * 1-5"   # 01:01 UTC = 10:01 KST (education)
-    - cron: "9 1 * * 1-5"   # 01:09 UTC = 10:09 KST (finance)
-    - cron: "17 1 * * 1-5"  # 01:17 UTC = 10:17 KST (mobility)
+    # cron 은 UTC. 8분 간격(생성이 느려도 겹치지 않게 — concurrency 대기 취소 방지).
+    # 빈도 차등: 매일(평일 1-5) / 격일(월수금 1,3,5) / 주간(요일 분산 — 월 쏠림 방지).
+    # ⚠️ 아래 cron 문자열은 Resolve 스텝의 case 패턴과 요일 필드까지 바이트 동일해야 한다.
+    - cron: "5 0 * * 1-5"     # 09:05 KST 평일   — kr-daily
+    - cron: "13 0 * * 1-5"    # 09:13 KST 평일   — it-ai
+    - cron: "21 0 * * 1,3,5"  # 09:21 KST 월수금 — global-ui-ux
+    - cron: "29 0 * * 1,3,5"  # 09:29 KST 월수금 — electronics
+    - cron: "37 0 * * 2"      # 09:37 KST 화     — health
+    - cron: "45 0 * * 4"      # 09:45 KST 목     — food-travel
+    - cron: "53 0 * * 1,3,5"  # 09:53 KST 월수금 — gaming
+    - cron: "1 1 * * 5"       # 10:01 KST 금     — education
+    - cron: "9 1 * * 1-5"     # 10:09 KST 평일   — finance
+    - cron: "17 1 * * 1,3,5"  # 10:17 KST 월수금 — mobility
   workflow_dispatch:
     inputs:
       category:
@@ -45,17 +47,17 @@ jobs:
         id: ctx
         run: |
           case "${{ github.event.schedule }}" in
-            "5 0 * * 1-5")  CATEGORY=kr-daily ;;
-            "13 0 * * 1-5") CATEGORY=it-ai ;;
-            "21 0 * * 1-5") CATEGORY=global-ui-ux ;;
-            "29 0 * * 1-5") CATEGORY=electronics ;;
-            "37 0 * * 1-5") CATEGORY=health ;;
-            "45 0 * * 1-5") CATEGORY=food-travel ;;
-            "53 0 * * 1-5") CATEGORY=gaming ;;
-            "1 1 * * 1-5")  CATEGORY=education ;;
-            "9 1 * * 1-5")  CATEGORY=finance ;;
-            "17 1 * * 1-5") CATEGORY=mobility ;;
-            *)              CATEGORY="${{ github.event.inputs.category }}" ;;
+            "5 0 * * 1-5")    CATEGORY=kr-daily ;;
+            "13 0 * * 1-5")   CATEGORY=it-ai ;;
+            "21 0 * * 1,3,5") CATEGORY=global-ui-ux ;;
+            "29 0 * * 1,3,5") CATEGORY=electronics ;;
+            "37 0 * * 2")     CATEGORY=health ;;
+            "45 0 * * 4")     CATEGORY=food-travel ;;
+            "53 0 * * 1,3,5") CATEGORY=gaming ;;
+            "1 1 * * 5")      CATEGORY=education ;;
+            "9 1 * * 1-5")    CATEGORY=finance ;;
+            "17 1 * * 1,3,5") CATEGORY=mobility ;;
+            *)                CATEGORY="${{ github.event.inputs.category }}" ;;
           esac
           case "$CATEGORY" in
             kr-daily|it-ai|global-ui-ux|electronics|health|food-travel|gaming|education|finance|mobility) ;;
