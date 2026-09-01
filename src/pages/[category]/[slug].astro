@@ -40,14 +40,6 @@ const jsonLd = [
     { name: entry.data.title, path: report.href },
   ]),
 ];
-
-const host = (url: string) => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return '';
-  }
-};
 ---
 
 <BaseLayout
@@ -109,8 +101,8 @@ const host = (url: string) => {
               <li>
                 <a href={s.url} target="_blank" rel="noopener noreferrer">
                   {s.title}
-                </a>{' '}
-                <span class="host">{host(s.url)}</span>
+                </a>
+                <span class="src-url">{s.url}</span>
               </li>
             ))}
           </ol>

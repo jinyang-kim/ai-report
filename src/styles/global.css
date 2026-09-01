@@ -516,7 +516,7 @@ a.chip:hover { filter: brightness(0.96); }
   color: var(--accent-ink); text-decoration: none;
 }
 .sources a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.sources .host { color: var(--ink-3); font-size: 13px; }
+.sources .src-url { display: block; font-size: 12px; color: var(--ink-3); word-break: break-all; margin-top: 3px; }
 
 /* ---------- pager ---------- */
 
@@ -597,7 +597,7 @@ a.chip:hover { filter: brightness(0.96); }
 .ftr { margin-top: 56px; border-top: 1px solid var(--line); background: var(--surface-2); }
 .ftr__in {
   display: flex; flex-wrap: wrap; gap: 18px 32px;
-  justify-content: space-between; padding: 30px 0;
+  justify-content: space-between; padding-block: 30px;
   font-size: 13.5px; color: var(--ink-3);
 }
 .ftr__links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
