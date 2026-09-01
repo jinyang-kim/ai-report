@@ -14,7 +14,7 @@
 예:
     python3 publish.py it-ai 2026-09-01 ./IT-AI-2026-09-01.md
 
-카테고리: kr-daily | it-ai | global-ui-ux
+카테고리: kr-daily | it-ai | global-ui-ux | electronics | health | food-travel | gaming
 """
 import os
 import re

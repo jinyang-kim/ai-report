@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       category:
-        description: "kr-daily | it-ai | global-ui-ux"
+        description: "kr-daily | it-ai | global-ui-ux | electronics | health | food-travel | gaming"
         required: true
       date:
         description: "YYYY-MM-DD (비우면 오늘 KST)"
