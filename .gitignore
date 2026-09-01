@@ -7,3 +7,4 @@ dist/
 .env
 .env.production
 _to_delete/
+.lighthouseci/
