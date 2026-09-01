@@ -2,14 +2,14 @@ name: Generate Reports
 
 on:
   schedule:
-    # cron 은 UTC. 각 줄이 별도 일정 (평일):
+    # cron 은 UTC. 각 줄이 별도 일정 (평일). 8분 간격 — 생성이 느려도 겹치지 않게(concurrency 대기 취소 방지):
     - cron: "5 0 * * 1-5"   # 00:05 UTC = 09:05 KST (kr-daily)
-    - cron: "10 0 * * 1-5"  # 00:10 UTC = 09:10 KST (it-ai)
-    - cron: "15 0 * * 1-5"  # 00:15 UTC = 09:15 KST (global-ui-ux)
-    - cron: "20 0 * * 1-5"  # 00:20 UTC = 09:20 KST (electronics)
-    - cron: "25 0 * * 1-5"  # 00:25 UTC = 09:25 KST (health)
-    - cron: "30 0 * * 1-5"  # 00:30 UTC = 09:30 KST (food-travel)
-    - cron: "35 0 * * 1-5"  # 00:35 UTC = 09:35 KST (gaming)
+    - cron: "13 0 * * 1-5"  # 00:13 UTC = 09:13 KST (it-ai)
+    - cron: "21 0 * * 1-5"  # 00:21 UTC = 09:21 KST (global-ui-ux)
+    - cron: "29 0 * * 1-5"  # 00:29 UTC = 09:29 KST (electronics)
+    - cron: "37 0 * * 1-5"  # 00:37 UTC = 09:37 KST (health)
+    - cron: "45 0 * * 1-5"  # 00:45 UTC = 09:45 KST (food-travel)
+    - cron: "53 0 * * 1-5"  # 00:53 UTC = 09:53 KST (gaming)
   workflow_dispatch:
     inputs:
       category:
@@ -43,12 +43,12 @@ jobs:
         run: |
           case "${{ github.event.schedule }}" in
             "5 0 * * 1-5")  CATEGORY=kr-daily ;;
-            "10 0 * * 1-5") CATEGORY=it-ai ;;
-            "15 0 * * 1-5") CATEGORY=global-ui-ux ;;
-            "20 0 * * 1-5") CATEGORY=electronics ;;
-            "25 0 * * 1-5") CATEGORY=health ;;
-            "30 0 * * 1-5") CATEGORY=food-travel ;;
-            "35 0 * * 1-5") CATEGORY=gaming ;;
+            "13 0 * * 1-5") CATEGORY=it-ai ;;
+            "21 0 * * 1-5") CATEGORY=global-ui-ux ;;
+            "29 0 * * 1-5") CATEGORY=electronics ;;
+            "37 0 * * 1-5") CATEGORY=health ;;
+            "45 0 * * 1-5") CATEGORY=food-travel ;;
+            "53 0 * * 1-5") CATEGORY=gaming ;;
             *)              CATEGORY="${{ github.event.inputs.category }}" ;;
           esac
           case "$CATEGORY" in
