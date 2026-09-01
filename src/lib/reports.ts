@@ -4,7 +4,11 @@ import { CATEGORIES, CATEGORY_IDS, type CategoryId, type Category } from './cate
 export type AnyEntry =
   | CollectionEntry<'it-ai'>
   | CollectionEntry<'kr-daily'>
-  | CollectionEntry<'global-ui-ux'>;
+  | CollectionEntry<'global-ui-ux'>
+  | CollectionEntry<'electronics'>
+  | CollectionEntry<'health'>
+  | CollectionEntry<'food-travel'>
+  | CollectionEntry<'gaming'>;
 
 export interface Report {
   entry: AnyEntry;

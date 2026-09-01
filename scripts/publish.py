@@ -23,7 +23,7 @@ import subprocess
 import sys
 import tempfile
 
-CATEGORIES = {"kr-daily", "it-ai", "global-ui-ux"}
+CATEGORIES = {"kr-daily", "it-ai", "global-ui-ux", "electronics", "health", "food-travel", "gaming"}
 BOT_NAME = "AI Report Bot"
 BOT_MAIL = "ai-report-bot@users.noreply.github.com"
 PUSH_RETRIES = 3
