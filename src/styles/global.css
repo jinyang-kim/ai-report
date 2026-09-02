@@ -682,6 +682,8 @@ a.chip:hover { filter: brightness(0.96); }
 /* ---------- prose ---------- */
 
 .prose { max-width: var(--maxw-prose); font-size: 16.5px; line-height: 1.8; color: var(--ink); }
+/* 특정 페이지(예: /privacy/)에서 본문을 .wrap 전체 폭으로 넓힘 */
+.prose.prose--full { max-width: none; }
 .prose > * + * { margin-top: 1.15em; }
 .prose h2 {
   font-size: 22px; letter-spacing: -0.028em; margin-top: 2em; padding-top: 1.1em;
