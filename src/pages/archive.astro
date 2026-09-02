@@ -37,14 +37,14 @@ const jsonLd = [
 
 <BaseLayout
   title="아카이브"
-  description="지금까지 발행된 모든 브리핑을 날짜순으로 모아봅니다. 제목·요약·태그로 검색하고 카테고리로 걸러낼 수 있습니다."
+  description="지금까지 발행된 모든 브리핑을 날짜순으로 모아봅니다. 제목·본문·태그를 전문 검색하고 카테고리로 걸러낼 수 있습니다."
   jsonLd={jsonLd}
 >
   <section class="hero">
     <div class="wrap">
       <p class="hero__eyebrow">Archive</p>
       <h1>전체 아카이브</h1>
-      <p>지금까지 발행된 브리핑 {all.length}개. 제목·요약·태그로 검색하거나 카테고리로 걸러보세요.</p>
+      <p>지금까지 발행된 브리핑 {all.length}개. 제목·본문·태그를 전문 검색하거나 카테고리로 걸러보세요.</p>
     </div>
   </section>
 
@@ -108,6 +108,8 @@ const jsonLd = [
   </section>
 
   <script is:inline>
+    // 검색은 Pagefind(본문 전문 색인, /pagefind/ 는 빌드 시 생성)로 매칭 리포트 URL 을 얻어
+    // 기존 행을 필터한다. Pagefind 미로드(개발/색인 없음) 시 제목·요약·태그 텍스트 필터로 폴백한다.
     (() => {
       const root = document.getElementById('archive');
       if (!root) return;
@@ -119,19 +121,55 @@ const jsonLd = [
       const rows = [...root.querySelectorAll('.row')];
       const months = [...root.querySelectorAll('[data-month]')];
       const total = rows.length;
+      const pathOf = (u) => {
+        try {
+          return new URL(u, location.origin).pathname.replace(/index\.html$/, '');
+        } catch {
+          return u;
+        }
+      };
 
       let cat = 'all';
       let q = '';
+      let pagefind = null;
+      import('/pagefind/pagefind.js')
+        .then((m) => {
+          pagefind = m;
+          return m.init ? m.init() : null;
+        })
+        .then(() => {
+          if (q.trim()) apply(); // 로드 전에 입력했다면 전문 검색으로 재실행
+        })
+        .catch(() => {
+          pagefind = null;
+        });
 
-      function apply() {
-        const needle = q.trim().toLowerCase();
-        const terms = needle ? needle.split(/\s+/) : [];
+      async function matchSet(needle) {
+        if (!pagefind) return null; // 폴백 신호
+        try {
+          const s = await pagefind.search(needle);
+          const data = await Promise.all(s.results.map((r) => r.data()));
+          return new Set(data.map((d) => pathOf(d.url)));
+        } catch {
+          return null;
+        }
+      }
+
+      let runId = 0;
+      async function apply() {
+        const myRun = ++runId;
+        const needle = q.trim();
+        const terms = needle ? needle.toLowerCase().split(/\s+/) : [];
+        const urlSet = needle ? await matchSet(needle) : null;
+        if (myRun !== runId) return; // 더 최신 검색이 시작됐으면 폐기
+
         let shown = 0;
-
         for (const row of rows) {
           const matchCat = cat === 'all' || row.dataset.cat === cat;
-          const text = row.dataset.text || '';
-          const matchText = terms.every((t) => text.includes(t));
+          let matchText;
+          if (!needle) matchText = true;
+          else if (urlSet) matchText = urlSet.has(pathOf(row.getAttribute('href')));
+          else matchText = terms.every((t) => (row.dataset.text || '').includes(t));
           const visible = matchCat && matchText;
           row.hidden = !visible;
           if (visible) shown++;
@@ -145,7 +183,6 @@ const jsonLd = [
         }
 
         if (noResults) noResults.hidden = shown > 0;
-
         if (status) {
           status.textContent =
             !needle && cat === 'all'
@@ -160,7 +197,7 @@ const jsonLd = [
         timer = setTimeout(() => {
           q = input.value;
           apply();
-        }, 120);
+        }, 160);
       });
 
       for (const btn of buttons) {

@@ -142,9 +142,15 @@ CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
   보강만 합니다 — 한 그룹을 열면 나머지 닫기, Escape(포커스 복귀), 바깥 클릭 닫기. 프레임워크 없이
   접근 가능한 드롭다운을 만드는 표준 패턴이니 메뉴류를 추가할 때 이 방식을 따르세요. 데스크톱은
   우측 정렬 컴팩트 패널, 모바일(≤720px)은 nav 전체 폭 패널(`.nav-group { position: static }`)입니다.
-- 아카이브 검색·필터 — `archive.astro`. 빌드 시 각 행의 `data-text` 속성에 검색 대상(제목·요약·핵심·
-  태그·카테고리명·날짜)을 미리 넣고 DOM 을 숨김/표시합니다. 별도 인덱스 파일이 없습니다.
-  본문 전문 검색이 필요해지면 Pagefind 로 교체하는 게 표준 경로입니다 (README 참고).
+- 아카이브 검색·필터 — `archive.astro`. **본문 전문 검색은 Pagefind**로 합니다. `data-pagefind-body`
+  를 리포트 상세 `<article>` 에만 달아 **리포트 페이지만 색인**(홈·목록·아카이브 제외)하고, 목차·구독
+  배너·페이저·고지는 `data-pagefind-ignore` 로 뺍니다. 검색 스크립트는 `pagefind.search(q)` 로 매칭
+  리포트 URL 집합을 받아 **기존 행(row)을 그 집합으로 필터**합니다(기존 UI·카테고리 필터 재사용).
+  `/pagefind/` 는 **배포 시에만 생성**됩니다 — `vercel.json` 의 `buildCommand` 가 `npm run build` 뒤에
+  `npx pagefind --site dist` 를 돌립니다(실패해도 배포는 진행, 검색은 폴백). 그래서 로컬 `npm run build`
+  와 CI 게이트엔 `/pagefind/` 가 없고, 이때 검색은 각 행의 `data-text`(제목·요약·핵심·태그·카테고리·날짜)
+  **클라이언트 필터로 폴백**합니다. 로컬에서 전문 검색을 테스트하려면 `npm run build && npx pagefind
+  --site dist && npm run preview`.
 - 본문 가로 스크롤 처리 — `[category]/[slug].astro`. 넓은 표를 `.table-scroll` 로 감싸고
   (`tabindex` + `role="region"`), 넘치는 코드 블록에만 `tabindex` 를 붙입니다. 코드 블록 판정은
   폰트 스왑(`document.fonts.ready`)과 리사이즈 후 다시 합니다 — 첫 렌더 시점에는 폴백 폰트

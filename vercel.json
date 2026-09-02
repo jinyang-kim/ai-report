@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build && (npx -y pagefind --site dist || echo 'pagefind 색인 실패 — 검색은 클라이언트 폴백')",
   "headers": [
     {
       "source": "/fonts/(.*)",
