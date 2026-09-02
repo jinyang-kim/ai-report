@@ -195,7 +195,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 76px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -349,6 +349,8 @@ a { color: inherit; }
 /* 모바일: 브랜드+토글 한 줄, 그룹 메뉴 4개는 그 아래 한 줄로 */
 @media (max-width: 720px) {
   .hdr__in { height: auto; flex-wrap: wrap; gap: 8px; padding-block: 9px; }
+  /* 모바일 헤더는 두 줄로 줄바꿈돼 더 높다 — 앵커/포커스 스크롤 여유를 늘린다 */
+  html { scroll-padding-top: 108px; }
   .brand { order: 1; }
   #theme-toggle { order: 2; margin-inline-start: auto; }
   .nav {
