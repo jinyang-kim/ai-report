@@ -120,7 +120,7 @@ src/content/<category>/YYYY-MM-DD.md
 | 페이지 | `h2` 를 담당하는 것 |
 | --- | --- |
 | 홈 | `.section__head` 의 눈에 보이는 `h2` ("가장 최근 브리핑" 등) |
-| 카테고리 목록 | `sr-only` `h2` — 디자인상 보이는 제목이 없어 넣은 것이니 지우지 마세요 |
+| 카테고리 목록 · 태그(`/tag/<slug>/`) | `sr-only` `h2` — 디자인상 보이는 제목이 없어 넣은 것이니 지우지 마세요 |
 | 아카이브 | 월 그룹 `<h2 class="day__date">` |
 | 리포트 상세 | "오늘의 핵심" · 본문 `##` · "출처" |
 
@@ -166,7 +166,7 @@ CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
 | 페이지 | 스키마 |
 | --- | --- |
 | 홈 | `WebSite` + `CollectionPage` |
-| 카테고리 목록 · 아카이브 | `CollectionPage` + `BreadcrumbList` |
+| 카테고리 목록 · 아카이브 · 태그 | `CollectionPage` + `BreadcrumbList` |
 | 리포트 상세 | `BlogPosting` + `BreadcrumbList` |
 
 날짜는 `toIsoKst()`(reports.ts) 한 곳에서만 만듭니다 — `2026-08-31T00:00:00+09:00`.

@@ -9,6 +9,7 @@ import {
   neighbours,
   toIsoKst,
   readingMinutes,
+  tagSlug,
   type Report,
 } from '~/lib/reports';
 import { blogPostingSchema, breadcrumbSchema, ogImageFor } from '~/lib/schema';
@@ -82,7 +83,9 @@ const jsonLd = [
           entry.data.tags.length > 0 && (
             <span class="tags">
               {entry.data.tags.map((t) => (
-                <span class="chip chip--plain">{t}</span>
+                <a class="chip chip--plain" href={`/tag/${tagSlug(t)}/`}>
+                  #{t}
+                </a>
               ))}
             </span>
           )

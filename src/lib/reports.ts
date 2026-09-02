@@ -136,6 +136,33 @@ export function groupByMonth(reports: Report[]) {
   return [...map.entries()].map(([monthKey, items]) => ({ monthKey, items }));
 }
 
+/** 태그를 URL 안전 slug 로. 한글·영숫자·하이픈만 남기고 공백은 하이픈. (예: "갤럭시 S26 FE" → "갤럭시-s26-fe") */
+export const tagSlug = (tag: string) =>
+  tag.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\p{L}\p{N}-]/gu, '');
+
+export interface TagGroup {
+  slug: string;
+  label: string;
+  reports: Report[];
+}
+
+/** 전체 리포트에서 태그별 그룹 (slug 로 묶음, 리포트 최신순, 그룹은 리포트 많은 순). */
+export function getAllTags(reports: Report[]): TagGroup[] {
+  const map = new Map<string, TagGroup>();
+  for (const r of reports) {
+    for (const tag of r.entry.data.tags) {
+      const slug = tagSlug(tag);
+      if (!slug) continue;
+      const g = map.get(slug) ?? { slug, label: tag, reports: [] };
+      if (!g.reports.includes(r)) g.reports.push(r);
+      map.set(slug, g);
+    }
+  }
+  return [...map.values()].sort(
+    (a, b) => b.reports.length - a.reports.length || a.label.localeCompare(b.label)
+  );
+}
+
 /** 앞뒤 리포트 (같은 카테고리 내에서) */
 export function neighbours(list: Report[], slug: string) {
   const i = list.findIndex((r) => r.slug === slug);

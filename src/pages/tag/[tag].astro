@@ -1,0 +1,61 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ReportCard from '~/components/ReportCard.astro';
+import { getAllReports, getAllTags, formatDate, type TagGroup } from '~/lib/reports';
+import { collectionSchema, breadcrumbSchema } from '~/lib/schema';
+
+export const getStaticPaths = (async () => {
+  const all = await getAllReports();
+  return getAllTags(all).map((t) => ({ params: { tag: t.slug }, props: { group: t } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  group: TagGroup;
+}
+
+const { group } = Astro.props;
+const { label, slug, reports } = group;
+const latest = reports[0];
+
+const site = Astro.site!;
+const jsonLd = [
+  collectionSchema(site, {
+    name: `#${label}`,
+    description: `'${label}' 태그가 달린 브리핑 ${reports.length}개.`,
+    path: `/tag/${slug}/`,
+    reports,
+  }),
+  breadcrumbSchema(site, [
+    { name: '홈', path: '/' },
+    { name: `#${label}`, path: `/tag/${slug}/` },
+  ]),
+];
+---
+
+<BaseLayout
+  title={`#${label}`}
+  description={`'${label}' 태그가 달린 브리핑 ${reports.length}개를 모아봅니다.`}
+  jsonLd={jsonLd}
+>
+  <section class="hero">
+    <div class="wrap">
+      <p class="hero__eyebrow">Tag</p>
+      <h1>#{label}</h1>
+      <div class="hero__meta">
+        <span>{reports.length}개 리포트</span>
+        {latest && <span>최신 · {formatDate(latest.date, { weekday: true })}</span>}
+        <a class="section__more" href="/archive/">전체 아카이브 →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2 class="sr-only">#{label} 태그 리포트 목록</h2>
+      <div class="grid">
+        {reports.map((r) => <ReportCard report={r} />)}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
