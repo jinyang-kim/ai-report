@@ -40,6 +40,7 @@ const groupActive = (cats: { id: string }[]) => cats.some((c) => path.startsWith
           </details>
         ))
       }
+      <a class="nav-link" href="/weekly/" aria-current={isCurrent('/weekly/')}>이번 주</a>
       <a class="nav-link" href="/archive/" aria-current={isCurrent('/archive/')}>아카이브</a>
     </nav>
 

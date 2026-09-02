@@ -166,7 +166,7 @@ CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
 | 페이지 | 스키마 |
 | --- | --- |
 | 홈 | `WebSite` + `CollectionPage` |
-| 카테고리 목록 · 아카이브 · 태그 | `CollectionPage` + `BreadcrumbList` |
+| 카테고리 목록 · 아카이브 · 태그 · 주간(`/weekly/`) | `CollectionPage` + `BreadcrumbList` |
 | 리포트 상세 | `BlogPosting` + `BreadcrumbList` |
 
 날짜는 `toIsoKst()`(reports.ts) 한 곳에서만 만듭니다 — `2026-08-31T00:00:00+09:00`.

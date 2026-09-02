@@ -1,0 +1,103 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { CATEGORY_IDS, CATEGORIES } from '~/lib/categories';
+import { getAllReports, formatDate, formatShortDate } from '~/lib/reports';
+import { collectionSchema, breadcrumbSchema } from '~/lib/schema';
+
+const all = await getAllReports();
+const latestDate = all[0]?.date ?? null;
+
+// 가장 최근 리포트 날짜 기준 최근 7일(롤링) 창.
+const DAY = 86_400_000;
+const weekReports = latestDate
+  ? all.filter((r) => {
+      const diff = (latestDate.getTime() - r.date.getTime()) / DAY;
+      return diff >= 0 && diff < 7;
+    })
+  : [];
+
+// 카테고리별 그룹 (CATEGORY_IDS 순서, 리포트 있는 것만).
+const byCat = CATEGORY_IDS.map((id) => ({
+  category: CATEGORIES[id],
+  reports: weekReports.filter((r) => r.categoryId === id),
+})).filter((g) => g.reports.length > 0);
+
+const to = weekReports[0]?.date ?? null; // 창 내 최신
+const from = weekReports[weekReports.length - 1]?.date ?? null; // 창 내 최고(過去)
+
+const site = Astro.site!;
+const jsonLd = [
+  collectionSchema(site, {
+    name: 'AI Report — 이번 주 다이제스트',
+    description: '최근 7일 동안 발행된 브리핑의 핵심을 카테고리별로 모아봅니다.',
+    path: '/weekly/',
+    reports: weekReports,
+  }),
+  breadcrumbSchema(site, [
+    { name: '홈', path: '/' },
+    { name: '이번 주', path: '/weekly/' },
+  ]),
+];
+---
+
+<BaseLayout
+  title="이번 주 다이제스트"
+  description="최근 7일 동안 발행된 브리핑의 핵심을 카테고리별로 모아봅니다."
+  jsonLd={jsonLd}
+>
+  <section class="hero">
+    <div class="wrap">
+      <p class="hero__eyebrow">Weekly digest</p>
+      <h1>이번 주 다이제스트</h1>
+      <p>최근 7일 동안 발행된 브리핑의 핵심을 카테고리별로 한눈에 모았습니다.</p>
+      <div class="hero__meta">
+        {from && to && (
+          <span>{formatShortDate(from)} – {formatDate(to, { weekday: true })}</span>
+        )}
+        <span>총 {weekReports.length}개 리포트</span>
+        <a class="section__more" href="/archive/">전체 아카이브 →</a>
+      </div>
+    </div>
+  </section>
+
+  {
+    weekReports.length === 0 ? (
+      <section class="section">
+        <div class="wrap">
+          <div class="empty">
+            <h2>이번 주 브리핑이 아직 없습니다</h2>
+            <p>평일 아침 리포트가 쌓이면 이곳에 주간 다이제스트가 만들어집니다.</p>
+          </div>
+        </div>
+      </section>
+    ) : (
+      byCat.map((g) => (
+        <section class="section weekly-sec">
+          <div class="wrap">
+            <div class="section__head">
+              <h2>
+                <span class={`chip chip--${g.category.id}`}>{g.category.short}</span>
+                {g.category.name}
+              </h2>
+            </div>
+            <ul class="weekly">
+              {g.reports.map((r) => (
+                <li>
+                  <a class="weekly__item" href={r.href}>
+                    <span class="weekly__date">{formatShortDate(r.date)}</span>
+                    <span class="weekly__body">
+                      <span class="weekly__title">{r.entry.data.title}</span>
+                      {r.entry.data.highlights[0] && (
+                        <span class="weekly__hl">{r.entry.data.highlights[0]}</span>
+                      )}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ))
+    )
+  }
+</BaseLayout>
