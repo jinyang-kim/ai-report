@@ -195,6 +195,11 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* `hidden` 속성은 항상 숨긴다. .row{display:flex} 처럼 요소에 display 를 준 규칙이
+   UA 기본 [hidden]{display:none} 을 덮어써서(아카이브 필터·검색이 시각적으로 안 걸림)
+   이를 !important 로 되돌린다. hidden 속성이 붙은 요소에만 영향. */
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 76px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
