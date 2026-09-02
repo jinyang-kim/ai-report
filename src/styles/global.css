@@ -487,6 +487,57 @@ a.chip:hover { filter: brightness(0.96); }
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 
+/* ---------- featured (홈 대표 브리핑) ---------- */
+
+.featured {
+  display: block; padding: 26px 28px 24px; background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  border-left: 4px solid var(--card-accent, var(--accent));
+  text-decoration: none; color: inherit;
+  transition: border-color .16s, box-shadow .16s, transform .16s;
+}
+.featured:hover { border-color: var(--line-2); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.featured__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.featured__meta { font-size: 13px; font-weight: 600; color: var(--ink-3); margin-inline-start: auto; }
+.featured__title {
+  font-size: clamp(21px, 3vw, 29px); font-weight: 800; line-height: 1.28;
+  letter-spacing: -0.03em; color: var(--ink); margin: 0 0 12px;
+}
+.featured__summary {
+  font-size: 16px; color: var(--ink-2); line-height: 1.65; margin: 0 0 14px; max-width: 70ch;
+}
+.featured__hl {
+  font-size: 14.5px; color: var(--ink-2); line-height: 1.55;
+  margin: 0 0 18px; padding-left: 12px; max-width: 70ch;
+  border-left: 2px solid var(--card-accent, var(--accent));
+}
+.featured__cta { font-size: 14px; font-weight: 700; color: var(--ink); }
+.featured:hover .featured__cta { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- 목차 (리포트 상세) ---------- */
+
+.toc {
+  max-width: var(--maxw-prose); margin: 0 0 30px; padding: 15px 18px;
+  background: var(--surface-3); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.toc__label {
+  margin: 0 0 8px; font-size: 12px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3);
+}
+.toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; display: grid; gap: 3px; }
+.toc li { counter-increment: toc; }
+.toc a {
+  display: inline-flex; gap: 8px; padding: 3px 0; line-height: 1.5;
+  font-size: 14.5px; color: var(--ink-2); text-decoration: none;
+}
+.toc a::before {
+  content: counter(toc) '.'; flex: none;
+  color: var(--art-accent-solid, var(--accent-ink)); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.toc a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+.read-time::before { content: '·'; margin-inline-end: 8px; color: var(--ink-4); }
+
 /* ---------- day group ---------- */
 
 .day + .day { margin-top: 34px; }

@@ -1,6 +1,6 @@
 ---
 import type { Report } from '~/lib/reports';
-import { formatShortDate } from '~/lib/reports';
+import { formatShortDate, readingMinutes } from '~/lib/reports';
 
 interface Props {
   report: Report;
@@ -12,13 +12,14 @@ interface Props {
 const { report, hideCategory = false, maxHighlights = 3 } = Astro.props;
 const { entry, category, categoryId, href, date } = report;
 const highlights = entry.data.highlights.slice(0, maxHighlights);
+const mins = readingMinutes(entry);
 ---
 
 <a class={`card card--${categoryId}`} href={href}>
   <div class="card__top">
     {!hideCategory && <span class={`chip chip--${categoryId}`}>{category.name}</span>}
     {entry.data.alert && <span class="chip chip--alert">🔔 조치 필요</span>}
-    <span class="card__date">{formatShortDate(date)}</span>
+    <span class="card__date">{formatShortDate(date)} · {mins}분</span>
   </div>
 
   <h3>{entry.data.title}</h3>

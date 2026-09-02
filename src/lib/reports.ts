@@ -74,6 +74,17 @@ const build = (entry: AnyEntry, categoryId: CategoryId): Report => {
   };
 };
 
+/** 본문 길이 기반 예상 읽는 시간(분). 한국어 약 500자/분, 최소 1분. */
+export function readingMinutes(entry: AnyEntry): number {
+  const body = (entry as { body?: string }).body ?? '';
+  const text = body
+    .replace(/```[\s\S]*?```/g, ' ') // 코드블록 제외
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1') // 링크·이미지는 표시 텍스트만
+    .replace(/[#>*`~|_]/g, ''); // 마크다운 기호 제거
+  const chars = text.replace(/\s+/g, '').length;
+  return Math.max(1, Math.round(chars / 500));
+}
+
 const notDraft = ({ data }: AnyEntry) => import.meta.env.DEV || !data.draft;
 
 /** 전체 리포트를 최신순으로 */

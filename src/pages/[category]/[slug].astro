@@ -3,7 +3,14 @@ import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { CATEGORIES, CATEGORY_IDS } from '~/lib/categories';
-import { getReportsByCategory, formatDate, neighbours, toIsoKst, type Report } from '~/lib/reports';
+import {
+  getReportsByCategory,
+  formatDate,
+  neighbours,
+  toIsoKst,
+  readingMinutes,
+  type Report,
+} from '~/lib/reports';
 import { blogPostingSchema, breadcrumbSchema, ogImageFor } from '~/lib/schema';
 
 export const getStaticPaths = (async () => {
@@ -27,7 +34,9 @@ interface Props {
 const { report, siblings } = Astro.props;
 const { entry, categoryId, slug, date } = report;
 const category = CATEGORIES[categoryId];
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
+const toc = headings.filter((h) => h.depth === 2);
+const mins = readingMinutes(entry);
 const { newer, older } = neighbours(siblings, slug);
 
 const site = Astro.site!;
@@ -63,6 +72,7 @@ const jsonLd = [
 
       <div class="article__meta">
         <time datetime={slug}>{formatDate(date, { weekday: true })}</time>
+        <span class="read-time">약 {mins}분 분량</span>
         {
           entry.data.tags.length > 0 && (
             <span class="tags">
@@ -85,6 +95,21 @@ const jsonLd = [
             ))}
           </ol>
         </aside>
+      )
+    }
+
+    {
+      toc.length >= 3 && (
+        <nav class="toc" aria-label="목차">
+          <p class="toc__label">목차</p>
+          <ol>
+            {toc.map((h) => (
+              <li>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
       )
     }
 

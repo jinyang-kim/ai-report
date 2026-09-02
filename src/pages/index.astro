@@ -2,7 +2,7 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import ReportCard from '~/components/ReportCard.astro';
 import { CATEGORY_LIST } from '~/lib/categories';
-import { getAllReports, groupByDate, formatDate } from '~/lib/reports';
+import { getAllReports, groupByDate, formatDate, readingMinutes } from '~/lib/reports';
 import { websiteSchema, collectionSchema } from '~/lib/schema';
 
 const all = await getAllReports();
@@ -10,6 +10,10 @@ const days = groupByDate(all);
 const [latest, ...previous] = days;
 const recent = previous.slice(0, 4);
 const hasMore = previous.length > recent.length;
+
+// 최신 날짜에서 대표 1건을 피처드로 (조치 필요 alert 우선, 없으면 첫 카테고리).
+const featured = latest ? (latest.items.find((r) => r.entry.data.alert) ?? latest.items[0]!) : null;
+const latestRest = latest ? latest.items.filter((r) => r !== featured) : [];
 
 const site = Astro.site!;
 const jsonLd = [
@@ -60,21 +64,45 @@ const jsonLd = [
       </section>
     ) : (
       <>
-        <section class="section">
-          <div class="wrap">
-            <div class="section__head">
-              <div>
-                <h2>가장 최근 브리핑</h2>
-                <p>{formatDate(latest!.date, { weekday: true })}</p>
+        {featured && (
+          <section class="section featured-sec">
+            <div class="wrap">
+              <a class={`featured card--${featured.categoryId}`} href={featured.href}>
+                <div class="featured__top">
+                  <span class={`chip chip--${featured.categoryId}`}>{featured.category.name}</span>
+                  {featured.entry.data.alert && <span class="chip chip--alert">🔔 조치 필요</span>}
+                  <span class="featured__meta">
+                    {formatDate(featured.date, { weekday: true })} · 약 {readingMinutes(featured.entry)}분
+                  </span>
+                </div>
+                <h2 class="featured__title">{featured.entry.data.title}</h2>
+                <p class="featured__summary">{featured.entry.data.summary}</p>
+                {featured.entry.data.highlights[0] && (
+                  <p class="featured__hl">{featured.entry.data.highlights[0]}</p>
+                )}
+                <span class="featured__cta">브리핑 읽기 →</span>
+              </a>
+            </div>
+          </section>
+        )}
+
+        {latestRest.length > 0 && (
+          <section class="section">
+            <div class="wrap">
+              <div class="section__head">
+                <div>
+                  <h2>가장 최근 브리핑</h2>
+                  <p>{formatDate(latest!.date, { weekday: true })}</p>
+                </div>
+              </div>
+              <div class="grid grid--3">
+                {latestRest.map((r) => (
+                  <ReportCard report={r} />
+                ))}
               </div>
             </div>
-            <div class="grid grid--3">
-              {latest!.items.map((r) => (
-                <ReportCard report={r} />
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {recent.length > 0 && (
           <section class="section">
