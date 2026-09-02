@@ -116,6 +116,10 @@ jobs:
           npm ci
           npm run build
 
+      - name: Quality gate (본문·출처·핵심 검사)
+        if: steps.exists.outputs.skip == 'false'
+        run: python3 scripts/quality-check.py "${{ steps.ctx.outputs.file }}"
+
       - name: Commit and push
         if: steps.exists.outputs.skip == 'false'
         env:

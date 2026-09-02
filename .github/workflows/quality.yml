@@ -18,6 +18,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: 색 대비 게이트 (라이트+다크 — pa11y 가 못 보는 다크 회귀 방지)
+        run: python3 scripts/contrast-check.py
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc

@@ -37,7 +37,14 @@ python3 scripts/make-og.py   # public/og/*.png 재생성 (카테고리·브랜�
 CI 게이트가 하나 더 있습니다 — PR 을 열면 `.github/workflows/quality.yml` 이 접근성·성능을 검사합니다
 (pa11y-ci `WCAG2AA` + Lighthouse CI, accessibility ≥ 0.9 는 실패 조건, perf·SEO 는 advisory). 도구는 CI 에서만
 `npx` 로 설치해 package.json 을 건드리지 않습니다. 콘텐츠는 `main` 에 직접 push 되므로, 이 게이트는
-템플릿·스타일을 바꾸는 사람 dev 의 PR 에서만 돕니다.
+템플릿·스타일을 바꾸는 사람 dev 의 PR 에서만 돕니다. **pa11y 는 라이트 모드만 렌더**하므로, 같은 잡의
+`scripts/contrast-check.py` 가 카테고리 색 토큰을 **라이트+다크 3블록** 전부 계산해 대비 임계를 강제합니다
+(`--cat-*-solid` vs 흰글자 ≥ 4.7, `--chip-*-fg/bg` ≥ 4.5 — 다크 회귀 방지). 의존성 없이 `global.css` 만 읽습니다.
+
+자동 생성 파이프라인에는 게이트가 하나 더 있습니다 — `generate.yml` 이 빌드(zod) 통과 뒤 커밋 전에
+`scripts/quality-check.py <파일>` 을 돌립니다. zod 가 최소 개수를 강제하지 않는 **오늘의 핵심 ≥ 3·출처 ≥ 3·
+본문 길이·title/summary** 를 검사해, 생성이 사실상 실패한 리포트(빈 본문·출처 없음 등)의 커밋을 막습니다
+(실패 시 `cron-failure` 이슈). 직전 리포트와 본문이 동일하면 경고만 합니다.
 
 ## 아키텍처
 
