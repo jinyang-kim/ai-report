@@ -140,8 +140,8 @@ CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
 ### 클라이언트 JS
 
 프레임워크 아일랜드가 없습니다. 인터랙션은 `.astro` 안의 인라인 스크립트 5개가 전부입니다.
-(`is:inline` 로 grep 하면 6건이 나오는데, 하나는 `BaseLayout` 의 JSON-LD 출력용 템플릿이라
-인터랙션이 아닙니다.)
+(`is:inline` 로 grep 하면 7건이 나오는데, 하나는 `BaseLayout` 의 JSON-LD 출력용 템플릿이고
+하나는 `BaseLayout` 의 서비스워커 등록(PWA, 인터랙션 아님)입니다.)
 
 - 테마 부트스트랩(`<head>`) + 토글 핸들러 — `BaseLayout.astro`
 - GNB 그룹 드롭다운 — `Header.astro`. 카테고리 10개를 `CATEGORY_GROUPS`(3그룹)로 묶어 네이티브
@@ -258,4 +258,12 @@ cron 은 UTC(`5 0` = 00:05 UTC = 09:05 KST). 리포트 날짜는 잡 안에서 `
 - 모바일 좌우 여백은 `.wrap` 의 `max(20px, env(safe-area-inset-*))`(≤560px) + `<meta viewport ... viewport-fit=cover>`.
   리포트 상세 `.article` 은 `padding-block` 만 지정해 `.wrap` 의 좌우 여백을 상속합니다 — `padding: X 0 Y` 로
   되돌리면 상세 콘텐츠가 모바일에서 화면 끝에 붙습니다.
+- **PWA(설치형 앱)** — 빌드 플러그인 없이 손으로 만든 정적 자산입니다. `public/manifest.webmanifest`
+  (standalone·아이콘 192/512 any-maskable·theme-color), `public/sw.js`(서비스워커 — 해시 정적 자산은
+  캐시 우선, 문서는 네트워크 우선+오프라인 캐시 폴백), `public/icons/{192,512,180}.png`. 아이콘은
+  `scripts/make-icons.py`(Chrome+sips, make-og 방식)로 생성 — 브랜드 마크가 바뀔 때만 재실행.
+  `BaseLayout` `<head>` 가 manifest·apple-touch-icon·theme-color(라이트/다크)·apple 메타를 걸고,
+  본문 끝 인라인 스크립트가 SW 를 등록합니다(실패해도 사이트 정상 — 진행적 향상). SW 는 HTTPS/localhost
+  에서만 등록되고, 자동화·임베디드 브라우저에선 등록이 막힐 수 있습니다(실기기·프로덕션에선 정상).
+  SW 캐시 스키마를 바꾸면 `sw.js` 의 `CACHE = 'ai-report-vN'` 버전을 올려 옛 캐시를 무효화하세요.
 - `_to_delete/` 는 gitignore 된 잡동사니 디렉터리입니다 (README.md 사본 포함). 검색·탐색에서 제외하세요.
