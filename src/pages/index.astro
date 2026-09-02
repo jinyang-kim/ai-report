@@ -86,6 +86,26 @@ const jsonLd = [
           </section>
         )}
 
+        {latest && latest.items.length > 1 && (
+          <section class="section glance-sec">
+            <div class="wrap">
+              <div class="section__head">
+                <h2>오늘 한눈에</h2>
+              </div>
+              <ol class="glance">
+                {latest.items.map((r) => (
+                  <li>
+                    <a class="glance__row" href={r.href}>
+                      <span class={`chip chip--${r.categoryId}`}>{r.category.short}</span>
+                      <span class="glance__text">{r.entry.data.highlights[0] ?? r.entry.data.title}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+        )}
+
         {latestRest.length > 0 && (
           <section class="section">
             <div class="wrap">

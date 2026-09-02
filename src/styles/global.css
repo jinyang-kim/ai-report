@@ -445,17 +445,15 @@ a.chip:hover { filter: brightness(0.96); }
 .card {
   position: relative; display: flex; flex-direction: column; gap: 12px;
   padding: 20px 20px 18px; background: var(--surface-2);
-  border: 1px solid var(--line); border-radius: var(--radius);
+  border: 1px solid var(--line); border-left: 4px solid var(--card-accent, var(--accent));
+  border-radius: var(--radius);
   text-decoration: none; color: inherit; overflow: hidden;
   transition: border-color .16s, box-shadow .16s, transform .16s;
 }
-.card::before {
-  content: ''; position: absolute; inset: 0 auto 0 0; width: 3px;
-  background: var(--card-accent, var(--accent));
-  opacity: 0; transition: opacity .16s;
+.card:hover {
+  border-color: var(--line-2); border-left-color: var(--card-accent, var(--accent));
+  box-shadow: var(--shadow-md); transform: translateY(-2px);
 }
-.card:hover { border-color: var(--line-2); box-shadow: var(--shadow-md); transform: translateY(-2px); }
-.card:hover::before { opacity: 1; }
 .card--kr-daily     { --card-accent: var(--cat-kr-daily); }
 .card--it-ai        { --card-accent: var(--cat-it-ai); }
 .card--global-ui-ux { --card-accent: var(--cat-global-ui-ux); }
@@ -496,7 +494,10 @@ a.chip:hover { filter: brightness(0.96); }
   text-decoration: none; color: inherit;
   transition: border-color .16s, box-shadow .16s, transform .16s;
 }
-.featured:hover { border-color: var(--line-2); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.featured:hover {
+  border-color: var(--line-2); border-left-color: var(--card-accent, var(--accent));
+  box-shadow: var(--shadow-md); transform: translateY(-2px);
+}
 .featured__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .featured__meta { font-size: 13px; font-weight: 600; color: var(--ink-3); margin-inline-start: auto; }
 .featured__title {
@@ -537,6 +538,44 @@ a.chip:hover { filter: brightness(0.96); }
 .toc a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 .read-time::before { content: '·'; margin-inline-end: 8px; color: var(--ink-4); }
+
+/* ---------- 오늘 한눈에 (홈 digest) ---------- */
+
+.glance { margin: 0; padding: 0; list-style: none; counter-reset: glance; display: grid; gap: 2px; }
+.glance li { counter-increment: glance; }
+.glance__row {
+  display: flex; align-items: center; gap: 12px; padding: 11px 12px;
+  border-radius: var(--radius-sm); text-decoration: none; color: inherit; transition: background .14s;
+}
+.glance__row::before {
+  content: counter(glance); flex: none; width: 1.4em; text-align: center;
+  font-size: 13px; font-weight: 700; color: var(--ink-4); font-variant-numeric: tabular-nums;
+}
+.glance__row:hover { background: var(--surface-3); }
+.glance__row .chip { flex: none; }
+.glance__text {
+  font-size: 14.5px; color: var(--ink-2); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.glance__row:hover .glance__text { color: var(--ink); }
+
+/* ---------- 구독 배너 (리포트 하단) ---------- */
+
+.subscribe {
+  max-width: var(--maxw-prose); margin: 40px 0 0;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 18px 22px; border-radius: var(--radius);
+  background: color-mix(in srgb, var(--art-accent, var(--accent)) 8%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--art-accent, var(--accent)) 22%, var(--line));
+}
+.subscribe__title { margin: 0; font-size: 15.5px; font-weight: 700; color: var(--ink); }
+.subscribe__sub { margin: 3px 0 0; font-size: 13.5px; color: var(--ink-3); }
+.subscribe__btn {
+  margin-inline-start: auto; flex: none; padding: 9px 16px;
+  border-radius: var(--radius-sm); background: var(--art-accent-solid, var(--accent-ink));
+  color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; transition: filter .14s;
+}
+.subscribe__btn:hover { filter: brightness(1.08); }
 
 /* ---------- day group ---------- */
 
@@ -632,10 +671,17 @@ a.chip:hover { filter: brightness(0.96); }
 .prose ul li::marker { color: var(--ink-4); }
 .prose ol li::marker { color: var(--ink-3); font-weight: 600; }
 .prose blockquote {
-  margin-inline: 0; padding: 2px 0 2px 18px;
-  border-inline-start: 3px solid var(--line-2); color: var(--ink-2);
+  margin: 1.7em 0; padding: 6px 0 6px 22px;
+  border-inline-start: 3px solid var(--art-accent, var(--line-2));
+  font-size: 18.5px; line-height: 1.62; font-weight: 500; letter-spacing: -0.01em;
+  color: var(--ink-2);
 }
-.prose hr { border: 0; border-top: 1px solid var(--line); margin: 2.4em 0; }
+.prose blockquote > :first-child { margin-top: 0; }
+.prose blockquote p { color: inherit; }
+.prose hr { border: 0; margin: 2.6em 0; text-align: center; height: auto; }
+.prose hr::before {
+  content: '· · ·'; color: var(--ink-4); font-size: 22px; letter-spacing: .35em; line-height: 1;
+}
 .prose code {
   font-family: var(--font-mono); font-size: .875em;
   background: var(--surface-3); border: 1px solid var(--line);

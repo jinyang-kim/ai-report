@@ -154,6 +154,14 @@ const jsonLd = [
       )
     }
 
+    <aside class="subscribe">
+      <div class="subscribe__text">
+        <p class="subscribe__title">매일 아침 {category.name} 브리핑 받아보기</p>
+        <p class="subscribe__sub">RSS 로 구독하면 새 리포트를 놓치지 않습니다.</p>
+      </div>
+      <a class="subscribe__btn" href={`/rss/${categoryId}.xml`}>RSS 구독 →</a>
+    </aside>
+
     <footer class="ai-disclaimer">
       <p>
         이 리포트는 AI(Claude)가 자동 생성한 요약입니다. 중요한 내용은{' '}
