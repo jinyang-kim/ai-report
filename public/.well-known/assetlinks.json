@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mobee.aireport",
+      "sha256_cert_fingerprints": [
+        "57:46:B7:84:79:9B:2D:71:D7:CC:FC:AE:5B:FD:A4:C6:9B:7B:49:7A:76:0D:CE:CF:0D:C6:C0:43:62:ED:7B:20"
+      ]
+    }
+  }
+]
