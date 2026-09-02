@@ -58,17 +58,20 @@ def main():
         run(["sips", "-z", "500", "1024", "-s", "format", "png", shot, "--out", shot])
         print(f"✅ {shot} (1024×500 피처 그래픽)")
 
-    # 2) 폰 스크린샷 1080×1920 (360×640 @3x, 모바일 레이아웃)
+    # 2) 폰 스크린샷 1400×2488 (700×1244 @2x, 모바일 레이아웃)
+    #    헤드리스는 요청 창보다 ~30px 넓게 렌더해 좁은 창(≤430)에선 우측이 짤린다.
+    #    700px 은 모바일 CSS(≤720) 범위이면서 여유가 있어 짤림 없이 깨끗하게 나온다.
+    #    --headless=new 가 DPR·뷰포트를 정확히 반영. sips 리사이즈는 하지 않음(왜곡 방지).
     for path, name in PAGES:
         out = os.path.join(OUT, f"screenshot-{name}.png")
-        run([CHROME, "--headless", "--disable-gpu", "--hide-scrollbars",
-             "--force-device-scale-factor=3", "--window-size=360,640",
+        run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+             "--force-device-scale-factor=2", "--window-size=700,1244",
              "--virtual-time-budget=4000",
              f"--screenshot={out}", SITE + path])
-        # 정확히 1080×1920 로 맞춤(안전한 9:16)
-        run(["sips", "-z", "1920", "1080", "-s", "format", "png", out, "--out", out])
+        w = subprocess.run(["sips", "-g", "pixelWidth", "-g", "pixelHeight", out],
+                           capture_output=True, text=True).stdout
         kb = os.path.getsize(out) // 1024
-        print(f"✅ {out} ({SITE}{path}, 1080×1920, {kb} KB)")
+        print(f"✅ {out} ({SITE}{path}, {kb} KB) {' '.join(w.split()[-4:])}")
 
 
 main()
