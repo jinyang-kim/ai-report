@@ -8,3 +8,4 @@ dist/
 .env.production
 _to_delete/
 .lighthouseci/
+store-assets/
