@@ -66,6 +66,15 @@ const ogImage = new URL(image, Astro.site);
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232a78d6'/%3E%3Cpath d='M8 21V11m0 10h5.5M8 16h4.5M18 21l3.5-10L25 21m-5.6-3h4.2' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"
     />
 
+    <!-- PWA: 설치형 앱 + 오프라인 (매니페스트·아이콘·서비스워커는 손으로 작성, 빌드 플러그인 없음) -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1a19" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="AI Report" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
     <!-- Pretendard Variable 자체 호스팅 (SIL OFL 1.1). 외부 CDN 의존 없음 — 사내망·오프라인에서도
          동일하게 렌더됩니다. dynamic-subset 이라 브라우저가 실제로 쓰이는 유니코드 범위만 내려받습니다.
 
@@ -123,6 +132,15 @@ const ogImage = new URL(image, Astro.site);
           if (!document.documentElement.dataset.theme) sync();
         });
       })();
+    </script>
+
+    <script is:inline>
+      // PWA 서비스 워커 등록 (실패해도 사이트는 정상 동작 — 진행적 향상)
+      if ('serviceWorker' in navigator) {
+        addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
     </script>
   </body>
 </html>
