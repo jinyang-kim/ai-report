@@ -2,25 +2,29 @@
 import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import ReportCard from '~/components/ReportCard.astro';
 import { CATEGORIES, CATEGORY_IDS } from '~/lib/categories';
 import {
+  getAllReports,
   getReportsByCategory,
   formatDate,
   neighbours,
   toIsoKst,
   readingMinutes,
   tagSlug,
+  relatedReports,
   type Report,
 } from '~/lib/reports';
 import { blogPostingSchema, breadcrumbSchema, ogImageFor } from '~/lib/schema';
 
 export const getStaticPaths = (async () => {
+  const all = await getAllReports();
   const groups = await Promise.all(
     CATEGORY_IDS.map(async (id) => {
       const reports = await getReportsByCategory(id);
       return reports.map((report) => ({
         params: { category: id, slug: report.slug },
-        props: { report, siblings: reports },
+        props: { report, siblings: reports, related: relatedReports(report, all) },
       }));
     })
   );
@@ -30,9 +34,10 @@ export const getStaticPaths = (async () => {
 interface Props {
   report: Report;
   siblings: Report[];
+  related: Report[];
 }
 
-const { report, siblings } = Astro.props;
+const { report, siblings, related } = Astro.props;
 const { entry, categoryId, slug, date } = report;
 const category = CATEGORIES[categoryId];
 const { Content, headings } = await render(entry);
@@ -139,6 +144,19 @@ const jsonLd = [
               </li>
             ))}
           </ol>
+        </section>
+      )
+    }
+
+    {
+      related.length > 0 && (
+        <section class="related" data-pagefind-ignore>
+          <h2>관련 리포트</h2>
+          <div class="grid">
+            {related.map((r) => (
+              <ReportCard report={r} maxHighlights={1} />
+            ))}
+          </div>
         </section>
       )
     }

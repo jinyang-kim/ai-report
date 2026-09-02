@@ -598,6 +598,12 @@ a.chip:hover { filter: brightness(0.96); }
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 
+/* ---------- 관련 리포트 (리포트 상세) ---------- */
+
+.related { max-width: var(--maxw-prose); margin: 44px 0 0; }
+.related > h2 { font-size: 20px; letter-spacing: -0.02em; margin-bottom: 16px; }
+.related .grid { gap: 14px; }
+
 /* ---------- day group ---------- */
 
 .day + .day { margin-top: 34px; }

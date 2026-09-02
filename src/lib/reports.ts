@@ -163,6 +163,25 @@ export function getAllTags(reports: Report[]): TagGroup[] {
   );
 }
 
+/**
+ * 태그를 공유하는 관련 리포트 (카테고리 무관). 공유 태그 수 → 최신순으로 정렬해 상위 `limit` 개.
+ * 자기 자신(같은 카테고리+같은 slug)은 제외. 현재 규모(수십~수천)에선 단순 스캔으로 충분하다.
+ */
+export function relatedReports(report: Report, all: Report[], limit = 4): Report[] {
+  const mine = new Set(report.entry.data.tags.map(tagSlug).filter(Boolean));
+  if (mine.size === 0) return [];
+  return all
+    .filter((r) => !(r.categoryId === report.categoryId && r.slug === report.slug))
+    .map((r) => ({
+      r,
+      shared: r.entry.data.tags.map(tagSlug).filter((s) => mine.has(s)).length,
+    }))
+    .filter((x) => x.shared > 0)
+    .sort((a, b) => b.shared - a.shared || b.r.date.getTime() - a.r.date.getTime())
+    .slice(0, limit)
+    .map((x) => x.r);
+}
+
 /** 앞뒤 리포트 (같은 카테고리 내에서) */
 export function neighbours(list: Report[], slug: string) {
   const i = list.findIndex((r) => r.slug === slug);
