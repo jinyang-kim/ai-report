@@ -196,15 +196,26 @@ OG 이미지는 `public/og/{default,kr-daily,it-ai,global-ui-ux}.png` 4장이고
 GitHub Actions cron → Claude Code(구독 OAuth)로 리서치·마크다운 작성 → npm run build → git push (main) → Vercel 자동 배포
 ```
 
-평일 아침 `.github/workflows/generate.yml` 이 **Claude Code Action**(`claude_code_oauth_token`)을 실행해
-리포트를 생성합니다. 구독 사용이라 토큰당 API 과금이 없고, 클라우드에서 돌아 맥 의존이 없습니다.
+`.github/workflows/generate.yml` 이 **Claude Code Action**(`claude_code_oauth_token`)을 실행해 리포트를
+생성합니다. 구독 사용이라 토큰당 API 과금이 없고, 클라우드에서 돌아 맥 의존이 없습니다.
 
-**catch-up 스케줄 구조** — cron 은 KST 09:15~12:15 창에서 **20분 간격 10회 발화**(UTC `15 0 * * 1-5`~`15 3 * * 1-5`,
-미니트는 정각 혼잡을 피해 :15/:35/:55). **한 실행 = 오늘 due 중 아직 파일이 없는 첫 카테고리 하나를 생성**(멱등).
-GitHub 예약 스케줄은 best-effort 라 지연·드롭되므로 창 안에서 반복 시도해 누락을 메웁니다(예약이 정시 발화 못 해도
-그날 안에 다 채워짐 — 단 지연 시 오후 도착). 그래서 **cron↔카테고리 1:1 매핑(옛 `case` 문)이 없습니다** — 요일별 빈도
-차등(매일/격일 월수금/주간 화·목·금)은 `Resolve` 스텝이 `TZ=Asia/Seoul date +%u` 로 계산해 `DUE` 목록을 만들고
-첫 미생성 파일을 고릅니다. 카테고리별 프롬프트는 `.github/prompts/<category>.md`.
+**2-window catch-up 스케줄** — cron 은 두 개의 창으로 나뉘고, **한 발화 = 그 창의 오늘 due 중 아직 파일이 없는
+첫 카테고리 하나를 생성**(멱등)합니다. GitHub 예약은 best-effort 라 지연·드롭되므로 창 안에서 반복 시도해 누락을
+메웁니다(정시 발화 못 해도 그날 안에 채워짐 — 단 지연 시 목표 시각을 넘길 수 있음).
+
+| 창 | UTC cron | KST | 대상 | 목적 |
+| --- | --- | --- | --- | --- |
+| 아침 | `10,30,50 17-20 * * *` (10회) | 02:10~05:10 매일 | **finance 제외 전부** | 07시 기상/09시 출근 전 도착 |
+| 오후 | `35 6`·`5 7`·`35 7`·`5 8 * * 1-5` (4회) | 15:35~17:05 평일 | **finance 만** | 장 마감 후 수치 |
+
+- **window 판정은 `Resolve` 스텝이 cron 의 UTC '시(hour)' 로** 합니다(≥15 → 아침, <15 → 오후). run-time 시각이
+  아니라 예약 cron 기준이라 지연에 견고합니다. 아침 창은 UTC 전날 저녁이지만 KST 로는 다음날 새벽이라
+  `date +%F`·`+%u` 가 올바른 KST 발행일·요일을 줍니다.
+- **cron↔카테고리 1:1 매핑(옛 `case` 문)이 없습니다.** 요일별 빈도(매일: kr-daily·it-ai·finance·food-travel /
+  격일 월수금: global-ui-ux·electronics·gaming·mobility / 주간: health 화·education 금)는 `Resolve` 가
+  `DUE` 목록으로 계산하고, 창 그룹 필터(오후=finance, 아침=finance 제외) 뒤 첫 미생성 파일을 고릅니다.
+  **food-travel 은 매일**(주말 포함 — 주말엔 morning 창의 유일한 due). `generatedAt` 은 실제 생성 KST 시각.
+- 카테고리별 프롬프트는 `.github/prompts/<category>.md`.
 
 - 생성은 Claude 가 파일 Write 까지만 하고, **커밋/푸시는 워크플로 스텝이 결정적으로** 합니다(git 을 Claude 에 맡기지 않음).
 - 검증 게이트는 `npm run build`(zod). 통과해야만 커밋. 같은 날짜 파일이 있으면 skip(멱등). push 충돌 시 rebase 재시도 3회.

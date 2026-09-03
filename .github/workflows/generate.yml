@@ -2,21 +2,28 @@ name: Generate Reports
 
 on:
   schedule:
-    # cron 은 UTC. 아침 창(KST 09:15~12:15)에서 20분 간격 10회 발화한다.
-    # 각 실행이 '오늘(KST) 발행 예정(due) 중 아직 파일이 없는 첫 카테고리 하나'를 생성한다(멱등 catch-up).
-    # GitHub 예약 스케줄은 best-effort 라 지연·드롭될 수 있으므로, 창 안에서 반복 시도해 누락을 메운다.
-    # 미니트는 정각(:00, 전역 데일리 잡이 몰리는 최대 혼잡)을 피해 :15/:35/:55 로 둬 지연을 줄인다.
-    # 요일별 빈도 차등(매일/격일/주간) 판정은 cron 이 아니라 아래 Resolve 잡 안에서 계산한다.
-    - cron: "15 0 * * 1-5"   # 09:15 KST
-    - cron: "35 0 * * 1-5"   # 09:35 KST
-    - cron: "55 0 * * 1-5"   # 09:55 KST
-    - cron: "15 1 * * 1-5"   # 10:15 KST
-    - cron: "35 1 * * 1-5"   # 10:35 KST
-    - cron: "55 1 * * 1-5"   # 10:55 KST
-    - cron: "15 2 * * 1-5"   # 11:15 KST
-    - cron: "35 2 * * 1-5"   # 11:35 KST
-    - cron: "55 2 * * 1-5"   # 11:55 KST
-    - cron: "15 3 * * 1-5"   # 12:15 KST
+    # cron 은 UTC. 두 개의 catch-up 창으로 나눈다. 각 발화 = '이 창의 오늘 due 중 아직 파일이 없는
+    # 첫 카테고리 하나'를 생성(멱등). GitHub 예약은 best-effort 라 지연·드롭되므로 창 안에서 반복 시도한다.
+    # window 판정은 Resolve 스텝이 cron 의 UTC '시(hour)' 로 한다(지연에 견고 — run-time 시각이 아님).
+    #
+    # ── 아침 창 (finance 제외 전부): UTC 17:10~20:10 = KST 02:10~05:10, 20분 간격 10회, 매일 발화.
+    #    KST 07시 기상/09시 출근 전 완료가 목표(단 GitHub 지연이 크면 밀릴 수 있음).
+    #    저녁 UTC 라 자정 UTC 피크보다 지연이 작은 편. 주말(토·일)엔 food-travel 만 due.
+    - cron: "10 17 * * *"
+    - cron: "30 17 * * *"
+    - cron: "50 17 * * *"
+    - cron: "10 18 * * *"
+    - cron: "30 18 * * *"
+    - cron: "50 18 * * *"
+    - cron: "10 19 * * *"
+    - cron: "30 19 * * *"
+    - cron: "50 19 * * *"
+    - cron: "10 20 * * *"
+    # ── 오후 창 (finance 만 — 장 마감 후 수치): UTC 06:35~08:05 = KST 15:35~17:05, 평일만 4회.
+    - cron: "35 6 * * 1-5"
+    - cron: "5 7 * * 1-5"
+    - cron: "35 7 * * 1-5"
+    - cron: "5 8 * * 1-5"
   workflow_dispatch:
     inputs:
       category:
@@ -48,7 +55,8 @@ jobs:
       - name: Resolve category and date
         id: ctx
         run: |
-          # 날짜: 입력 없으면 오늘 KST
+          # 날짜: 입력 없으면 오늘 KST. (아침 창은 UTC 전날 저녁 발화지만 그 시각이 KST 로는
+          #  다음날 새벽이라, date +%F 가 올바른 KST 발행일을 준다.)
           DATE="${{ github.event.inputs.date }}"
           if [ -z "$DATE" ]; then DATE="$(TZ=Asia/Seoul date +%F)"; fi
           if ! [[ "$DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
@@ -56,38 +64,63 @@ jobs:
           fi
 
           CATEGORY="${{ github.event.inputs.category }}"
-          if [ -z "$CATEGORY" ]; then
-            # 오늘(KST) 발행 예정(due) 카테고리 — 요일별 빈도 차등
-            DOW=$(TZ=Asia/Seoul date +%u)   # 1=월 .. 7=일
-            DUE="kr-daily it-ai finance"     # 매일(평일)
-            case "$DOW" in
-              1|3|5) DUE="$DUE global-ui-ux electronics gaming mobility" ;;  # 격일 월수금
+          if [ -n "$CATEGORY" ]; then
+            # 수동 지정 — 유효성만 검사
+            case "$CATEGORY" in
+              kr-daily|it-ai|global-ui-ux|electronics|health|food-travel|gaming|education|finance|mobility) ;;
+              *) echo "잘못된 category: '$CATEGORY'"; exit 1 ;;
             esac
-            if [ "$DOW" = "2" ]; then DUE="$DUE health"; fi        # 주간 화
-            if [ "$DOW" = "4" ]; then DUE="$DUE food-travel"; fi   # 주간 목
-            if [ "$DOW" = "5" ]; then DUE="$DUE education"; fi     # 주간 금
+          else
+            # window 판정: 예약 cron 의 UTC '시(hour)' 로 (지연에 견고 — run-time 시각이 아님).
+            #   아침 창 = UTC 17~20시(>=15) → finance 제외.  오후 창 = UTC 06~08시(<15) → finance 만.
+            #   수동(dispatch, cron 없음)은 window=any(전체 due).
+            SCHED="${{ github.event.schedule }}"
+            WINDOW="any"
+            if [ -n "$SCHED" ]; then
+              CH=$(echo "$SCHED" | awk '{print $2}')
+              if [ "$CH" -ge 15 ]; then WINDOW="morning"; else WINDOW="afternoon"; fi
+            fi
+
+            # 오늘(KST) 전체 due — 요일별 빈도 차등
+            DOW=$(TZ=Asia/Seoul date +%u)   # 1=월 .. 7=일
+            DUE=""
+            case "$DOW" in 1|2|3|4|5) DUE="kr-daily it-ai finance" ;; esac                    # 매일(평일)
+            case "$DOW" in 1|3|5) DUE="$DUE global-ui-ux electronics gaming mobility" ;; esac # 격일 월수금
+            if [ "$DOW" = "2" ]; then DUE="$DUE health"; fi                                   # 주간 화
+            if [ "$DOW" = "5" ]; then DUE="$DUE education"; fi                                # 주간 금
+            DUE="$DUE food-travel"                                                            # food-travel: 매일(주말 포함)
+
+            # 창별 그룹 필터 — 오후=finance(시장), 아침=finance 제외
+            DUE_NOW=""
+            for c in $DUE; do
+              if [ "$WINDOW" = "afternoon" ]; then
+                if [ "$c" = "finance" ]; then DUE_NOW="$DUE_NOW $c"; fi
+              elif [ "$WINDOW" = "morning" ]; then
+                if [ "$c" != "finance" ]; then DUE_NOW="$DUE_NOW $c"; fi
+              else
+                DUE_NOW="$DUE_NOW $c"
+              fi
+            done
 
             # due 중 아직 파일이 없는 첫 카테고리 선택
             PICK=""
-            for c in $DUE; do
+            for c in $DUE_NOW; do
               if [ ! -f "src/content/$c/$DATE.md" ]; then PICK="$c"; break; fi
             done
             if [ -z "$PICK" ]; then
-              echo "오늘($DATE) due 리포트가 모두 존재 → 생성할 것 없음(skip)"
+              echo "이 창($WINDOW) 의 오늘($DATE) due 가 모두 존재/없음 → 생성할 것 없음(skip)"
               echo "skip=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             CATEGORY="$PICK"
           fi
 
-          case "$CATEGORY" in
-            kr-daily|it-ai|global-ui-ux|electronics|health|food-travel|gaming|education|finance|mobility) ;;
-            *) echo "잘못된 category: '$CATEGORY'"; exit 1 ;;
-          esac
-          echo "선택된 카테고리: $CATEGORY (날짜 $DATE)"
+          GENAT="$(TZ=Asia/Seoul date +%Y-%m-%dT%H:%M:00+09:00)"
+          echo "선택된 카테고리: $CATEGORY (날짜 $DATE, 생성시각 $GENAT)"
           echo "category=$CATEGORY" >> "$GITHUB_OUTPUT"
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
           echo "file=src/content/$CATEGORY/$DATE.md" >> "$GITHUB_OUTPUT"
+          echo "generatedAt=$GENAT" >> "$GITHUB_OUTPUT"
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
       - name: Skip if report already exists
@@ -113,7 +146,7 @@ jobs:
             3. WebSearch/WebFetch 로 조사한다.
             4. 완성된 마크다운을 정확히 이 경로에 Write 한다: ${{ steps.ctx.outputs.file }}
                - 프론트매터 date 는 ${{ steps.ctx.outputs.date }} 이고 파일명과 일치해야 한다.
-               - generatedBy: claude-code, generatedAt: "${{ steps.ctx.outputs.date }}T09:00:00+09:00"
+               - generatedBy: claude-code, generatedAt: "${{ steps.ctx.outputs.generatedAt }}"
             git 명령은 실행하지 않는다. 파일 생성만 한다.
           claude_args: |
             --max-turns 40
