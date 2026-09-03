@@ -48,10 +48,8 @@ export const collections = {
   'kr-daily': collection('kr-daily'),
   'global-ui-ux': collection('global-ui-ux'),
   electronics: collection('electronics'),
-  health: collection('health'),
   'food-travel': collection('food-travel'),
   gaming: collection('gaming'),
-  education: collection('education'),
   finance: collection('finance'),
   mobility: collection('mobility'),
 };

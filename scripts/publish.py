@@ -14,7 +14,7 @@
 예:
     python3 publish.py it-ai 2026-09-01 ./IT-AI-2026-09-01.md
 
-카테고리: kr-daily | it-ai | global-ui-ux | electronics | health | food-travel | gaming | education | finance | mobility
+카테고리: kr-daily | it-ai | global-ui-ux | electronics | food-travel | gaming | finance | mobility
 """
 import os
 import re
@@ -23,7 +23,7 @@ import subprocess
 import sys
 import tempfile
 
-CATEGORIES = {"kr-daily", "it-ai", "global-ui-ux", "electronics", "health", "food-travel", "gaming", "education", "finance", "mobility"}
+CATEGORIES = {"kr-daily", "it-ai", "global-ui-ux", "electronics", "food-travel", "gaming", "finance", "mobility"}
 BOT_NAME = "AI Report Bot"
 BOT_MAIL = "ai-report-bot@users.noreply.github.com"
 PUSH_RETRIES = 3

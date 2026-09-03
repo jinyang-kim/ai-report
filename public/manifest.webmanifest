@@ -1,7 +1,7 @@
 {
   "name": "AI Report",
   "short_name": "AI Report",
-  "description": "평일 아침마다 자동으로 쌓이는 열 개 주제 브리핑 아카이브.",
+  "description": "평일 아침마다 자동으로 쌓이는 여덟 개 주제 브리핑 아카이브.",
   "lang": "ko",
   "dir": "ltr",
   "start_url": "/",

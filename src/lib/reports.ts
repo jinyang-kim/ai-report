@@ -6,10 +6,8 @@ export type AnyEntry =
   | CollectionEntry<'kr-daily'>
   | CollectionEntry<'global-ui-ux'>
   | CollectionEntry<'electronics'>
-  | CollectionEntry<'health'>
   | CollectionEntry<'food-travel'>
   | CollectionEntry<'gaming'>
-  | CollectionEntry<'education'>
   | CollectionEntry<'finance'>
   | CollectionEntry<'mobility'>;
 

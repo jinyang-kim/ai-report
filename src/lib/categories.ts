@@ -1,4 +1,4 @@
-export const CATEGORY_IDS = ['kr-daily', 'it-ai', 'global-ui-ux', 'electronics', 'health', 'food-travel', 'gaming', 'education', 'finance', 'mobility'] as const;
+export const CATEGORY_IDS = ['kr-daily', 'it-ai', 'global-ui-ux', 'electronics', 'food-travel', 'gaming', 'finance', 'mobility'] as const;
 export type CategoryId = (typeof CATEGORY_IDS)[number];
 
 export interface Category {
@@ -44,14 +44,6 @@ export const CATEGORIES: Record<CategoryId, Category> = {
     accent: '#0e9bb0',
     accentDark: '#1fb3c9',
   },
-  health: {
-    id: 'health',
-    name: '의료·헬스케어',
-    short: '의료',
-    description: '한국 의료·바이오·제약·헬스케어와 건강 정책 소식. 의학적 조언이 아닌 정보 제공입니다.',
-    accent: '#d84a6a',
-    accentDark: '#e56b86',
-  },
   'food-travel': {
     id: 'food-travel',
     name: '맛집·여행',
@@ -67,14 +59,6 @@ export const CATEGORIES: Record<CategoryId, Category> = {
     description: '온라인·모바일·콘솔 게임의 출시, 업데이트, 이스포츠와 업계 동향을 정리합니다.',
     accent: '#7c5cd6',
     accentDark: '#9377e0',
-  },
-  education: {
-    id: 'education',
-    name: '교육',
-    short: '교육',
-    description: '한국 입시·수능·교육정책·사교육·에듀테크·대학, 그리고 교육청 소식까지 정리합니다.',
-    accent: '#4f5bd5',
-    accentDark: '#6b76e0',
   },
   finance: {
     id: 'finance',
@@ -99,15 +83,15 @@ export const CATEGORY_LIST = CATEGORY_IDS.map((id) => CATEGORIES[id]);
 export interface CategoryGroup {
   /** GNB 드롭다운 버튼 라벨 */
   label: string;
-  /** 이 그룹에 속한 카테고리 — CATEGORY_IDS 부분집합, 전체 합집합은 10개 전부 */
+  /** 이 그룹에 속한 카테고리 — CATEGORY_IDS 부분집합, 전체 합집합은 8개 전부 */
   ids: CategoryId[];
 }
 
 /** GNB 상단 네비를 3개 드롭다운으로 묶는다 (Phase B). 순서·소속을 바꾸면 여기만 고치면 된다. */
 export const CATEGORY_GROUPS: CategoryGroup[] = [
-  { label: '시사·경제', ids: ['kr-daily', 'finance', 'education'] },
+  { label: '시사·경제', ids: ['kr-daily', 'finance'] },
   { label: '기술', ids: ['it-ai', 'global-ui-ux', 'electronics', 'mobility'] },
-  { label: '컬처·라이프', ids: ['health', 'food-travel', 'gaming'] },
+  { label: '컬처·라이프', ids: ['food-travel', 'gaming'] },
 ];
 
 export const isCategoryId = (v: string): v is CategoryId =>

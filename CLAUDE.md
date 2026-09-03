@@ -68,8 +68,8 @@ src/content/<category>/YYYY-MM-DD.md
 
 ### 카테고리 추가·변경 시 손대야 하는 곳
 
-카테고리 ID(현재 10개: `kr-daily`, `it-ai`, `global-ui-ux`, `electronics`, `health`, `food-travel`,
-`gaming`, `education`, `finance`, `mobility`)가 아래 지점에 하드코딩되어 있습니다.
+카테고리 ID(현재 8개: `kr-daily`, `it-ai`, `global-ui-ux`, `electronics`, `food-travel`,
+`gaming`, `finance`, `mobility`)가 아래 지점에 하드코딩되어 있습니다.
 하나라도 빠지면 빌드 실패, 조용한 스타일 누락, 또는 GNB·자동 생성에서 누락으로 이어집니다.
 
 | 파일 | 내용 |
@@ -144,7 +144,7 @@ CSS 는 `.empty :is(h2, h3)` 로 잡습니다.
 하나는 `BaseLayout` 의 서비스워커 등록(PWA, 인터랙션 아님)입니다.)
 
 - 테마 부트스트랩(`<head>`) + 토글 핸들러 — `BaseLayout.astro`
-- GNB 그룹 드롭다운 — `Header.astro`. 카테고리 10개를 `CATEGORY_GROUPS`(3그룹)로 묶어 네이티브
+- GNB 그룹 드롭다운 — `Header.astro`. 카테고리 8개를 `CATEGORY_GROUPS`(3그룹)로 묶어 네이티브
   `<details>/<summary>` 로 렌더합니다. 토글·키보드·aria 는 브라우저가 처리하고, 인라인 스크립트는
   보강만 합니다 — 한 그룹을 열면 나머지 닫기, Escape(포커스 복귀), 바깥 클릭 닫기. 프레임워크 없이
   접근 가능한 드롭다운을 만드는 표준 패턴이니 메뉴류를 추가할 때 이 방식을 따르세요. 데스크톱은
@@ -211,10 +211,10 @@ GitHub Actions cron → Claude Code(구독 OAuth)로 리서치·마크다운 작
 - **window 판정은 `Resolve` 스텝이 cron 의 UTC '시(hour)' 로** 합니다(≥15 → 아침, <15 → 오후). run-time 시각이
   아니라 예약 cron 기준이라 지연에 견고합니다. 아침 창은 UTC 전날 저녁이지만 KST 로는 다음날 새벽이라
   `date +%F`·`+%u` 가 올바른 KST 발행일·요일을 줍니다.
-- **cron↔카테고리 1:1 매핑(옛 `case` 문)이 없습니다.** 요일별 빈도(매일: kr-daily·it-ai·finance·food-travel /
-  격일 월수금: global-ui-ux·electronics·gaming·mobility / 주간: health 화·education 금)는 `Resolve` 가
-  `DUE` 목록으로 계산하고, 창 그룹 필터(오후=finance, 아침=finance 제외) 뒤 첫 미생성 파일을 고릅니다.
-  **food-travel 은 매일**(주말 포함 — 주말엔 morning 창의 유일한 due). `generatedAt` 은 실제 생성 KST 시각.
+- **cron↔카테고리 1:1 매핑(옛 `case` 문)이 없습니다.** 요일별 빈도는 `Resolve` 가 `DUE` 목록으로 계산합니다 —
+  **평일(월~금)**: kr-daily·it-ai·finance·global-ui-ux·electronics·gaming·mobility, **매일(주말 포함)**: food-travel.
+  창 그룹 필터(오후=finance, 아침=finance 제외) 뒤 첫 미생성 파일을 고릅니다. 주말엔 food-travel 이 morning 창의
+  유일한 due. `generatedAt` 은 실제 생성 KST 시각.
 - 카테고리별 프롬프트는 `.github/prompts/<category>.md`.
 
 - 생성은 Claude 가 파일 Write 까지만 하고, **커밋/푸시는 워크플로 스텝이 결정적으로** 합니다(git 을 Claude 에 맡기지 않음).

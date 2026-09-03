@@ -13,8 +13,8 @@ import sys
 
 CSS = "src/styles/global.css"
 CATS = [
-    "kr-daily", "it-ai", "global-ui-ux", "electronics", "health",
-    "food-travel", "gaming", "education", "finance", "mobility",
+    "kr-daily", "it-ai", "global-ui-ux", "electronics",
+    "food-travel", "gaming", "finance", "mobility",
 ]
 MODES = ["light", "os-dark", "manual-dark"]
 WHITE = "#ffffff"
@@ -67,7 +67,7 @@ def main():
             print(f"✗ {x}")
         print(f"색 대비 게이트 실패 ({len(fails)}건)")
         sys.exit(1)
-    print(f"✓ 색 대비 게이트 통과 — {checked}개 검사 (10 카테고리 × 라이트/다크)")
+    print(f"✓ 색 대비 게이트 통과 — {checked}개 검사 ({len(CATS)} 카테고리 × 라이트/다크)")
 
 
 main()
