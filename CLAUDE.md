@@ -182,8 +182,9 @@ JSON-LD 의 `datePublished`/`dateModified` 와 `<meta property="article:publishe
 "datetime 값이 잘못됨 / 시간대 누락" 으로 지적하고, `toISOString()` 은 UTC 자정을 내보내
 KST 달력 날짜와 9시간 어긋납니다. 둘 다 쓰지 마세요.
 
-OG 이미지는 `public/og/{default,kr-daily,it-ai,global-ui-ux}.png` 4장이고 **저장소에 커밋된 정적
-파일**입니다. 빌드 때 만들지 않습니다. `scripts/make-og.py` 가 헤드리스 Chrome + `sips`(macOS 기본
+OG 이미지는 `public/og/default.png` + 카테고리 8개(`kr-daily`·`it-ai`·`global-ui-ux`·`electronics`·
+`food-travel`·`gaming`·`finance`·`mobility`).png = **9장**이고 **저장소에 커밋된 정적 파일**입니다.
+빌드 때 만들지 않습니다. `scripts/make-og.py` 가 헤드리스 Chrome + `sips`(macOS 기본
 도구)로 1200×630 을 뽑습니다 — 이미지 라이브러리를 의존성에 넣지 않기 위한 선택입니다.
 
 `public/robots.txt` 는 주요 AI 크롤러(GPTBot·ClaudeBot·anthropic-ai·CCBot·Google-Extended·PerplexityBot 등)를
