@@ -146,7 +146,7 @@ jobs:
                - generatedBy: claude-code, generatedAt: "${{ steps.ctx.outputs.generatedAt }}"
             git 명령은 실행하지 않는다. 파일 생성만 한다.
           claude_args: |
-            --max-turns 40
+            --max-turns 55
             --allowedTools "Read,Write,Edit,Glob,Grep,WebSearch,WebFetch"
 
       - name: Verify file was created
