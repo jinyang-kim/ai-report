@@ -76,9 +76,12 @@ jobs:
             #   수동(dispatch, cron 없음)은 window=any(전체 due).
             SCHED="${{ github.event.schedule }}"
             WINDOW="any"
+            IS_LAST="false"
             if [ -n "$SCHED" ]; then
               CH=$(echo "$SCHED" | awk '{print $2}')
               if [ "$CH" -ge 15 ]; then WINDOW="morning"; else WINDOW="afternoon"; fi
+              # 각 창의 '마지막 예약 발화'인가 — 누락 이슈(gap check)는 여기서만 만든다(false alarm 방지).
+              if [ "$SCHED" = "10 20 * * *" ] || [ "$SCHED" = "5 8 * * 1-5" ]; then IS_LAST="true"; fi
             fi
 
             # 오늘(KST) 전체 due — 요일별 빈도 차등
@@ -98,6 +101,9 @@ jobs:
                 DUE_NOW="$DUE_NOW $c"
               fi
             done
+            # 이 창의 전체 due 목록 + 마지막 발화 여부 — 아래 gap check 스텝이 사용
+            echo "windowDue=$DUE_NOW" >> "$GITHUB_OUTPUT"
+            echo "isLast=$IS_LAST" >> "$GITHUB_OUTPUT"
 
             # due 중 아직 파일이 없는 첫 카테고리 선택
             PICK=""
@@ -189,24 +195,39 @@ jobs:
           done
           echo "3회 재시도 후 push 실패"; exit 1
 
-      - name: Open issue on failure
-        if: failure()
+      # false alarm 방지: 매 발화가 실패마다 이슈를 만들지 않는다(일시 실패는 다음 발화 catch-up 이 메움).
+      # 대신 '그 창의 마지막 예약 발화'에서만, 최신 main 기준으로 아직 없는 due 카테고리를 한 이슈로 보고.
+      # 마지막 발화 시점엔 catch-up 이 이미 메운 카테고리는 존재하므로 이슈가 생기지 않는다.
+      - name: Report window gaps (창 마지막 발화에서만)
+        if: always() && steps.ctx.outputs.isLast == 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            const cat = '${{ steps.ctx.outputs.category }}' || '(unknown)';
-            const date = '${{ steps.ctx.outputs.date }}' || '(unknown)';
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const title = `[생성 실패] ${cat} ${date}`;
-            // 같은 제목의 열린 이슈가 있으면 중복 생성하지 않음
-            const existing = await github.rest.issues.listForRepo({
-              owner: context.repo.owner, repo: context.repo.repo,
-              state: 'open', labels: 'cron-failure',
-            });
-            if (existing.data.some((i) => i.title === title)) return;
+            const date = '${{ steps.ctx.outputs.date }}';
+            const due = '${{ steps.ctx.outputs.windowDue }}'.trim().split(/\s+/).filter(Boolean);
+            const { owner, repo } = context.repo;
+            // 최신 main 기준으로 각 due 카테고리 파일 존재 확인 (catch-up 이 그날 안에 메웠는지)
+            const missing = [];
+            for (const c of due) {
+              try {
+                await github.rest.repos.getContent({ owner, repo, ref: 'main', path: `src/content/${c}/${date}.md` });
+              } catch (e) {
+                if (e.status === 404) missing.push(c); else throw e;
+              }
+            }
+            if (missing.length === 0) {
+              console.log(`창 마감 점검: 오늘(${date}) due ${due.length}개 전부 존재 — 이슈 없음`);
+              return;
+            }
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const title = `[생성 누락] ${date} — ${missing.join(', ')}`;
+            const open = await github.rest.issues.listForRepo({ owner, repo, state: 'open', labels: 'cron-failure' });
+            if (open.data.some((i) => i.title === title)) return;
             await github.rest.issues.create({
-              owner: context.repo.owner, repo: context.repo.repo,
-              title,
-              body: `카테고리: ${cat}\n날짜(KST): ${date}\n로그: ${runUrl}`,
+              owner, repo, title,
+              body: `창 마지막 예약 발화까지 생성되지 않은 카테고리 (날짜 KST ${date}):\n` +
+                    missing.map((c) => `- ${c}`).join('\n') +
+                    `\n\ncatch-up 이 그날 안에 메우지 못한 실제 누락입니다.\n` +
+                    `수동 생성: \`gh workflow run "Generate Reports" -f category=<id>\`\n\n로그: ${runUrl}`,
               labels: ['cron-failure'],
             });
